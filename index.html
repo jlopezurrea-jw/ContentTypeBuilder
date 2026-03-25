@@ -677,14 +677,14 @@
       ];
 
       const CONTENT_TYPES = [
-        { key: "movie", label: "Movie", description: "Standalone long-form title. Can be hosted or external.", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external"] },
-        { key: "episode", label: "Episode", description: "Child item under a Series. Usually inherits series metadata.", hosting_type: "hosted", is_series: false, hosting_locked: true, allowed_hosting_types: ["hosted"] },
-        { key: "series", label: "Series", description: "Parent container for episodes with series-level metadata.", hosting_type: "ott_data", is_series: true, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
-        { key: "live_channel", label: "Live Channel", description: "Continuous live stream with EPG", hosting_type: "live_bcl", is_series: false, hosting_locked: false, allowed_hosting_types: ["live_bcl", "external"] },
-        { key: "live_event", label: "Live Event", description: "Single scheduled live event", hosting_type: "live_bcl", is_series: false, hosting_locked: false, allowed_hosting_types: ["live_bcl", "external"] },
-        { key: "hub", label: "Hub", description: "A navigational grouping page", hosting_type: "ott_data", is_series: false, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
-        { key: "static_page", label: "Static Page", description: "A page with markdown content", hosting_type: "ott_data", is_series: false, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
-        { key: "custom", label: "Custom", description: "Fully custom schema from scratch", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external", "ott_data", "live_bcl", "renditions"] }
+        { key: "movie", label: "Movie", description: "Standalone long-form title. Can be hosted or external.", hosting_type: "", is_series: false },
+        { key: "episode", label: "Episode", description: "Child item under a Series. Usually inherits series metadata.", hosting_type: "hosted", is_series: false },
+        { key: "series", label: "Series", description: "Parent container for episodes with series-level metadata.", hosting_type: "ott_data", is_series: true },
+        { key: "live_channel", label: "Live Channel", description: "Continuous live stream with EPG", hosting_type: "live_bcl", is_series: false },
+        { key: "live_event", label: "Live Event", description: "Single scheduled live event", hosting_type: "live_bcl", is_series: false },
+        { key: "hub", label: "Hub", description: "A navigational grouping page", hosting_type: "ott_data", is_series: false },
+        { key: "static_page", label: "Static Page", description: "A page with markdown content", hosting_type: "ott_data", is_series: false },
+        { key: "custom", label: "Custom", description: "Fully custom schema from scratch", hosting_type: "", is_series: false }
       ];
 
       const TEMPLATE_FILTERS = {
@@ -882,12 +882,12 @@
       function applyContentTypeDefaults() {
         const selected = CONTENT_TYPES.find((c) => c.key === state.contentType);
         if (!selected) return;
-        if (selected.hosting_locked) {
+        if (selected.hosting_type) {
           state.schema.hosting_type = selected.hosting_type;
-        } else if (!selected.allowed_hosting_types.includes(state.schema.hosting_type)) {
+        } else if (!ALL_HOSTING_OPTIONS.some((opt) => opt.value === state.schema.hosting_type)) {
           state.schema.hosting_type = "";
         }
-        if (selected.hosting_locked && state.schema.hosting_type === "ott_data") {
+        if (selected.key === "series" && state.schema.hosting_type === "ott_data") {
           state.schema.is_series = selected.is_series;
         } else {
           applyHostingTypeDerivedState();
@@ -924,10 +924,6 @@
 
       function syncIdentityUI() {
         const selected = CONTENT_TYPES.find((c) => c.key === state.contentType);
-        const isCustom = isCustomSelection(state.contentType);
-        const allowedTypes = selected && Array.isArray(selected.allowed_hosting_types) && selected.allowed_hosting_types.length
-          ? selected.allowed_hosting_types
-          : ALL_HOSTING_OPTIONS.map((o) => o.value);
 
         applyHostingTypeDerivedState();
 
@@ -936,14 +932,12 @@
         placeholder.value = "";
         placeholder.textContent = "Select hosting type";
         el.hostingType.appendChild(placeholder);
-        ALL_HOSTING_OPTIONS
-          .filter((opt) => allowedTypes.includes(opt.value))
-          .forEach((opt) => {
-            const option = document.createElement("option");
-            option.value = opt.value;
-            option.textContent = opt.label;
-            el.hostingType.appendChild(option);
-          });
+        ALL_HOSTING_OPTIONS.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt.value;
+          option.textContent = opt.label;
+          el.hostingType.appendChild(option);
+        });
 
         el.displayName.value = state.schema.display_name;
         el.schemaName.value = state.schema.name;
@@ -951,20 +945,11 @@
         el.hostingType.value = state.schema.hosting_type;
         el.isActive.checked = !!state.schema.is_active;
 
-        if (!selected || isCustom || !selected.hosting_locked) {
-          el.hostingType.disabled = false;
-          el.hostingType.classList.remove("readonly");
-          el.hostingReadonly.textContent = selected && selected.key === "movie"
-            ? "Choose between hosted or external for VOD."
-            : "";
-          el.hostingReadonly.classList.toggle("hidden", !el.hostingReadonly.textContent);
-        } else {
-          el.hostingType.disabled = true;
-          el.hostingType.classList.add("readonly");
-          const txt = selected ? "Preconfigured from selected content type: " + selected.hosting_type : "";
-          el.hostingReadonly.textContent = txt;
-          el.hostingReadonly.classList.remove("hidden");
-        }
+        el.hostingType.classList.remove("readonly");
+        el.hostingReadonly.textContent = selected && selected.hosting_type
+          ? "Default from selected content type: " + selected.hosting_type + " (editable)"
+          : "";
+        el.hostingReadonly.classList.toggle("hidden", !el.hostingReadonly.textContent);
 
         const showSeries = state.schema.hosting_type === "ott_data";
         el.isSeriesWrap.classList.toggle("hidden", !showSeries);
@@ -1015,7 +1000,7 @@
                     param: "productIds",
                     description: "Comma-separated subscription identifiers",
                     type: "input",
-                    details: { placeholder: "CSV subscription IDs", input_type: "text" },
+                    details: { placeholder: "CSV subscription IDs", inputType: "text" },
                     fromTemplate: true
                   })
                 ]
@@ -1059,7 +1044,7 @@
                     param: "scheduleUrl",
                     description: "URL of schedule feed",
                     type: "input",
-                    details: { input_type: "url" },
+                    details: { inputType: "url" },
                     fromTemplate: true
                   }),
                   createField({
@@ -1197,7 +1182,9 @@
       function normalizeDetails(type, details) {
         const d = cloneDeep(details || {});
         if (type === "input") {
-          if (!d.input_type) d.input_type = "text";
+          if (d.input_type && !d.inputType) d.inputType = d.input_type;
+          delete d.input_type;
+          if (!d.inputType) d.inputType = "text";
         }
         if (type === "select" || type === "multiselect") {
           if (!Array.isArray(d.options)) d.options = [
@@ -1456,9 +1443,9 @@
             opt.textContent = t;
             sel.appendChild(opt);
           });
-          sel.value = d.input_type || "text";
+          sel.value = d.inputType || "text";
           sel.addEventListener("change", () => {
-            d.input_type = sel.value;
+            d.inputType = sel.value;
             onChange();
           });
           tWrap.appendChild(tLabel);
@@ -1660,8 +1647,11 @@
         const details = { field_type: field.type };
         const d = cloneDeep(field.details || {});
         if (field.type === "input") {
-          if (d.input_type === "text") delete d.input_type;
-          if (d.inputType === "text") delete d.inputType;
+          if (d.input_type && !d.inputType) d.inputType = d.input_type;
+          delete d.input_type;
+          if (!["number", "email", "url", "tel"].includes(d.inputType)) {
+            delete d.inputType;
+          }
         }
         if ((field.type === "select" || field.type === "multiselect") && Array.isArray(d.options)) {
           d.options = d.options.map((opt) => ({
