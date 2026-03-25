@@ -1,7 +1,5 @@
-yamlimage: alpine:latest
-
-pages:
-  stage: deploy
+yamlpages:
+  image: alpine:latest
   script:
     - mkdir -p public
     - cp index.html public/index.html
