@@ -465,6 +465,50 @@
       margin: 12px 0;
     }
 
+    .upload-panel {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0f1728;
+      overflow: hidden;
+    }
+
+    .upload-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      border-radius: 0;
+      background: #121d33;
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .upload-toggle.open {
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .upload-body {
+      padding: 12px;
+    }
+
+    .upload-status {
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+
+    .upload-status.error {
+      color: var(--error);
+    }
+
+    .upload-status.success {
+      color: var(--success);
+    }
+
     @media (max-width: 900px) {
       .grid-2,
       .grid-3,
@@ -581,6 +625,31 @@
               <span id="copyStatus" class="success hidden">Copied!</span>
             </div>
             <button id="backToEditBtn" type="button">Back to Edit</button>
+          </div>
+
+          <div class="upload-panel">
+            <button id="uploadToggleBtn" type="button" class="upload-toggle" aria-expanded="false" aria-controls="uploadBody">
+              <span>Upload directly to JWX Dashboard</span>
+              <span id="uploadToggleChevron">▸</span>
+            </button>
+            <div id="uploadBody" class="upload-body hidden">
+              <div class="grid-2">
+                <div class="field">
+                  <label for="uploadSiteId">Site ID</label>
+                  <input id="uploadSiteId" type="text" placeholder="e.g. aBcDeFgH" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="uploadApiKey">API Key</label>
+                  <input id="uploadApiKey" type="password" placeholder="Your JWP V2 API key" autocomplete="off">
+                </div>
+              </div>
+              <div class="inline-note">Your credentials are never stored and are only used for this request.</div>
+              <div id="uploadValidationErr" class="error hidden" style="margin-top:8px;"></div>
+              <div style="margin-top:10px;">
+                <button id="uploadBtn" type="button" class="btn-primary">Upload to Dashboard</button>
+              </div>
+              <div id="uploadStatus" class="upload-status hidden"></div>
+            </div>
           </div>
         </section>
       </div>
@@ -793,7 +862,15 @@
         copyBtn: document.getElementById("copyBtn"),
         downloadBtn: document.getElementById("downloadBtn"),
         copyStatus: document.getElementById("copyStatus"),
-        backToEditBtn: document.getElementById("backToEditBtn")
+        backToEditBtn: document.getElementById("backToEditBtn"),
+        uploadToggleBtn: document.getElementById("uploadToggleBtn"),
+        uploadToggleChevron: document.getElementById("uploadToggleChevron"),
+        uploadBody: document.getElementById("uploadBody"),
+        uploadSiteId: document.getElementById("uploadSiteId"),
+        uploadApiKey: document.getElementById("uploadApiKey"),
+        uploadBtn: document.getElementById("uploadBtn"),
+        uploadValidationErr: document.getElementById("uploadValidationErr"),
+        uploadStatus: document.getElementById("uploadStatus")
       };
 
       function uid() {
@@ -1841,6 +1918,17 @@
         }
       }
 
+      function setUploadStatus(type, msg) {
+        el.uploadStatus.textContent = msg || "";
+        el.uploadStatus.classList.remove("hidden", "error", "success");
+        if (!msg) {
+          el.uploadStatus.classList.add("hidden");
+          return;
+        }
+        if (type === "success") el.uploadStatus.classList.add("success");
+        else if (type === "error") el.uploadStatus.classList.add("error");
+      }
+
       function goToStep(stepNum, allowForward) {
         const target = Math.max(1, Math.min(5, stepNum));
         const limited = allowForward ? target : Math.min(target, getStepUnlockLimit());
@@ -1878,6 +1966,21 @@
         });
 
         el.backToEditBtn.addEventListener("click", () => goToStep(4));
+
+        el.uploadToggleBtn.addEventListener("click", () => {
+          const isOpen = !el.uploadBody.classList.contains("hidden");
+          if (isOpen) {
+            el.uploadBody.classList.add("hidden");
+            el.uploadToggleBtn.classList.remove("open");
+            el.uploadToggleBtn.setAttribute("aria-expanded", "false");
+            el.uploadToggleChevron.textContent = "▸";
+          } else {
+            el.uploadBody.classList.remove("hidden");
+            el.uploadToggleBtn.classList.add("open");
+            el.uploadToggleBtn.setAttribute("aria-expanded", "true");
+            el.uploadToggleChevron.textContent = "▾";
+          }
+        });
 
         el.displayName.addEventListener("input", () => {
           state.schema.display_name = el.displayName.value;
@@ -1962,6 +2065,75 @@
           a.click();
           a.remove();
           URL.revokeObjectURL(url);
+        });
+
+        el.uploadBtn.addEventListener("click", async () => {
+          const errors = collectValidationErrors();
+          if (errors.length > 0) {
+            refreshReview();
+            setUploadStatus("error", "Upload failed. Please fix schema validation errors first.");
+            return;
+          }
+
+          const siteId = el.uploadSiteId.value.trim();
+          const apiKey = el.uploadApiKey.value.trim();
+          if (!siteId || !apiKey) {
+            setInlineError(el.uploadValidationErr, "Site ID and API Key are required.");
+            setUploadStatus("", "");
+            return;
+          }
+          setInlineError(el.uploadValidationErr, "");
+          setUploadStatus("", "");
+
+          const payload = buildOutputObject();
+          const schema = payload && payload.schemas && payload.schemas[0] ? payload.schemas[0] : null;
+          if (!schema) {
+            setUploadStatus("error", "Upload failed. Please try downloading and uploading manually.");
+            return;
+          }
+
+          const oldBtnText = el.uploadBtn.textContent;
+          el.uploadBtn.disabled = true;
+          el.uploadBtn.textContent = "Uploading...";
+
+          try {
+            const response = await fetch("https://api.jwplayer.com/v2/sites/" + encodeURIComponent(siteId) + "/content_type_schemas/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + apiKey
+              },
+              body: JSON.stringify(schema)
+            });
+
+            const bodyText = await response.text();
+            if (response.ok) {
+              setUploadStatus("success", "✓ Content type uploaded successfully!");
+              el.uploadApiKey.value = "";
+            } else if (response.status === 401 || response.status === 403) {
+              setUploadStatus("error", "Authentication failed. Please check your API Key.");
+            } else if (response.status === 400) {
+              let message = "Upload failed. The schema may have validation errors.";
+              if (bodyText && bodyText.trim()) {
+                message += " " + bodyText.trim();
+              }
+              setUploadStatus("error", message);
+            } else if (response.status === 409) {
+              setUploadStatus("error", "A content type with this name already exists on this site.");
+            } else {
+              setUploadStatus("error", "Upload failed. Please try downloading and uploading manually.");
+            }
+          } catch (err) {
+            const msg = err && err.message ? String(err.message).toLowerCase() : "";
+            if (msg.includes("cors") || msg.includes("failed to fetch")) {
+              setUploadStatus("error", "Upload blocked by browser security (CORS). Please use the Download option instead.");
+            } else {
+              setUploadStatus("error", "Upload failed. Please try downloading and uploading manually.");
+            }
+          } finally {
+            el.uploadBtn.disabled = false;
+            el.uploadBtn.textContent = oldBtnText;
+          }
         });
       }
 
