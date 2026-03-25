@@ -2139,13 +2139,14 @@
           setInlineError(el.uploadValidationErr, "");
           setUploadStatus("", "");
 
-          const payload = buildOutputObject();
-          const schema = payload && payload.schemas && payload.schemas[0] ? payload.schemas[0] : null;
+          const generatedJSON = buildOutputObject();
+          const schema = generatedJSON && generatedJSON.schemas && generatedJSON.schemas[0] ? generatedJSON.schemas[0] : null;
           if (!schema) {
             setUploadStatus("error", "Upload failed. Please try downloading and uploading manually.");
             return;
           }
-          console.log("Upload payload:", schema);
+          const payload = { metadata: schema };
+          console.log("Upload payload:", payload);
 
           const oldBtnText = el.uploadBtn.textContent;
           el.uploadBtn.disabled = true;
@@ -2158,7 +2159,7 @@
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + apiKey
               },
-              body: JSON.stringify(schema)
+              body: JSON.stringify(payload)
             });
 
             const bodyText = await response.text();
