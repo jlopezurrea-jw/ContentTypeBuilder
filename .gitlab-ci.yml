@@ -1,4 +1,4 @@
-yamlpages:
+pages:
   image: alpine:latest
   script:
     - mkdir -p public
