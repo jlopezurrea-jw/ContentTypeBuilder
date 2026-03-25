@@ -680,15 +680,15 @@
         { key: "movie", label: "Movie", description: "Standalone long-form title. Can be hosted or external.", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external"] },
         { key: "episode", label: "Episode", description: "Child item under a Series. Usually inherits series metadata.", hosting_type: "hosted", is_series: false, hosting_locked: true, allowed_hosting_types: ["hosted"] },
         { key: "series", label: "Series", description: "Parent container for episodes with series-level metadata.", hosting_type: "ott_data", is_series: true, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
-        { key: "live_channel", label: "Live Channel", description: "Continuous live stream with EPG", hosting_type: "live_bcl", is_series: false, hosting_locked: true, allowed_hosting_types: ["live_bcl"] },
-        { key: "live_event", label: "Live Event", description: "Single scheduled live event", hosting_type: "live_bcl", is_series: false, hosting_locked: true, allowed_hosting_types: ["live_bcl"] },
+        { key: "live_channel", label: "Live Channel", description: "Continuous live stream with EPG", hosting_type: "live_bcl", is_series: false, hosting_locked: false, allowed_hosting_types: ["live_bcl", "external"] },
+        { key: "live_event", label: "Live Event", description: "Single scheduled live event", hosting_type: "live_bcl", is_series: false, hosting_locked: false, allowed_hosting_types: ["live_bcl", "external"] },
         { key: "hub", label: "Hub", description: "A navigational grouping page", hosting_type: "ott_data", is_series: false, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
         { key: "static_page", label: "Static Page", description: "A page with markdown content", hosting_type: "ott_data", is_series: false, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
         { key: "custom", label: "Custom", description: "Fully custom schema from scratch", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external", "ott_data", "live_bcl", "renditions"] }
       ];
 
       const TEMPLATE_FILTERS = {
-        general: ["movie", "series", "custom"],
+        general: ["movie", "series", "custom", "episode"],
         access: ["movie", "series", "live_channel", "live_event", "custom"],
         liveStatus: ["live_channel", "live_event", "custom"],
         epg: ["live_channel", "custom"],
@@ -1210,7 +1210,11 @@
 
       function renderTemplates() {
         const catalog = templatesCatalog();
-        const available = catalog.filter((tpl) => TEMPLATE_FILTERS[tpl.id].includes(state.contentType));
+        const available = catalog.filter((tpl) => {
+          if (!TEMPLATE_FILTERS[tpl.id].includes(state.contentType)) return false;
+          if (state.contentType === "episode" && tpl.id === "general") return false;
+          return true;
+        });
         el.templatesContainer.innerHTML = "";
         available.forEach((tpl) => {
           const selected = state.selectedTemplates.has(tpl.id);
