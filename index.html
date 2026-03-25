@@ -639,8 +639,8 @@
                   <input id="uploadSiteId" type="text" placeholder="e.g. aBcDeFgH" autocomplete="off">
                 </div>
                 <div class="field">
-                  <label for="uploadApiKey">API Key</label>
-                  <input id="uploadApiKey" type="password" placeholder="Your JWP V2 API key" autocomplete="off">
+                  <label for="uploadApiKey">Management API Key</label>
+                  <input id="uploadApiKey" type="password" class="upload-input" placeholder="Your Management API Key" autocomplete="off">
                 </div>
               </div>
               <div class="inline-note">Your credentials are never stored and are only used for this request.</div>
@@ -2111,7 +2111,7 @@
               setUploadStatus("success", "✓ Content type uploaded successfully!");
               el.uploadApiKey.value = "";
             } else if (response.status === 401 || response.status === 403) {
-              setUploadStatus("error", "Authentication failed. Please check your API Key.");
+            setUploadStatus("error", "Authentication failed. Please check your API Key.");
             } else if (response.status === 400) {
               let message = "Upload failed. The schema may have validation errors.";
               if (bodyText && bodyText.trim()) {
