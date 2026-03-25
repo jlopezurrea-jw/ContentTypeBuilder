@@ -1161,6 +1161,7 @@
           description: opts.description || "",
           required: !!opts.required,
           read_only: !!opts.read_only,
+          readOnlyTouched: !!opts.read_onlyTouched,
           type: opts.type || "input",
           details: normalizeDetails(opts.type || "input", opts.details || {}),
           expanded: true,
@@ -1182,8 +1183,6 @@
       function normalizeDetails(type, details) {
         const d = cloneDeep(details || {});
         if (type === "input") {
-          if (d.input_type && !d.inputType) d.inputType = d.input_type;
-          delete d.input_type;
           if (!d.inputType) d.inputType = "text";
         }
         if (type === "select" || type === "multiselect") {
@@ -1258,6 +1257,7 @@
           description: field.description,
           required: !!field.required,
           read_only: !!field.read_only,
+          readOnlyTouched: !!field.readOnlyTouched,
           type: field.type,
           details: cloneDeep(field.details || {}),
           expanded: true,
@@ -1374,6 +1374,7 @@
 
         readonlyCheck.addEventListener("change", (e) => {
           field.read_only = e.target.checked;
+          field.readOnlyTouched = true;
           refreshReview();
         });
 
@@ -1647,8 +1648,6 @@
         const details = { field_type: field.type };
         const d = cloneDeep(field.details || {});
         if (field.type === "input") {
-          if (d.input_type && !d.inputType) d.inputType = d.input_type;
-          delete d.input_type;
           if (!["number", "email", "url", "tel"].includes(d.inputType)) {
             delete d.inputType;
           }
@@ -1669,7 +1668,7 @@
         out.label = field.label || "";
         out.param = field.param || "";
         if (field.required) out.required = true;
-        if (field.read_only) out.read_only = true;
+        if (field.read_only === true && field.readOnlyTouched === true) out.read_only = true;
         return cleanupObject(out);
       }
 
