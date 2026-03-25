@@ -492,6 +492,7 @@
         <section class="step" data-step="1">
           <h2>Step 1 — Content Structure</h2>
           <p class="subtle">What type of content are you creating?</p>
+          <p class="subtle" style="margin-top:6px;">Use <strong>Movie</strong> for standalone VOD, <strong>Episode</strong> for child items in a series, and <strong>Series</strong> for the parent container.</p>
           <div id="contentTypeCards" class="content-cards"></div>
           <div id="contentTypeErr" class="error hidden" style="margin-top:10px;"></div>
         </section>
@@ -529,8 +530,8 @@
             </div>
             <div class="field">
               <div id="isSeriesWrap" class="switchline hidden">
-                <span>Is Series</span>
-                <input id="isSeries" type="checkbox">
+                <span>Is Series (read-only)</span>
+                <span id="isSeriesValue">false</span>
               </div>
               <div class="switchline">
                 <span>Is Active</span>
@@ -548,6 +549,7 @@
             <input id="startScratch" type="checkbox">
           </div>
           <div id="templatesContainer" class="template-list"></div>
+          <div id="templatesEmptyNote" class="inline-note hidden" style="margin-top:8px;"></div>
         </section>
 
         <section class="step" data-step="4">
@@ -675,8 +677,9 @@
       ];
 
       const CONTENT_TYPES = [
-        { key: "vod", label: "VOD", description: "Single video on demand (Movie, Episode, etc.)", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external"] },
-        { key: "series", label: "Series", description: "A series container (parent of episodes)", hosting_type: "ott_data", is_series: true, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
+        { key: "movie", label: "Movie", description: "Standalone long-form title. Can be hosted or external.", hosting_type: "", is_series: false, hosting_locked: false, allowed_hosting_types: ["hosted", "external"] },
+        { key: "episode", label: "Episode", description: "Child item under a Series. Usually inherits series metadata.", hosting_type: "hosted", is_series: false, hosting_locked: true, allowed_hosting_types: ["hosted"] },
+        { key: "series", label: "Series", description: "Parent container for episodes with series-level metadata.", hosting_type: "ott_data", is_series: true, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
         { key: "live_channel", label: "Live Channel", description: "Continuous live stream with EPG", hosting_type: "live_bcl", is_series: false, hosting_locked: true, allowed_hosting_types: ["live_bcl"] },
         { key: "live_event", label: "Live Event", description: "Single scheduled live event", hosting_type: "live_bcl", is_series: false, hosting_locked: true, allowed_hosting_types: ["live_bcl"] },
         { key: "hub", label: "Hub", description: "A navigational grouping page", hosting_type: "ott_data", is_series: false, hosting_locked: true, allowed_hosting_types: ["ott_data"] },
@@ -685,8 +688,8 @@
       ];
 
       const TEMPLATE_FILTERS = {
-        general: ["vod", "series", "custom"],
-        access: ["vod", "series", "live_channel", "live_event", "custom"],
+        general: ["movie", "series", "custom"],
+        access: ["movie", "series", "live_channel", "live_event", "custom"],
         liveStatus: ["live_channel", "live_event", "custom"],
         epg: ["live_channel", "custom"],
         liveParams: ["live_channel", "live_event", "custom"],
@@ -769,7 +772,7 @@
         hostingType: document.getElementById("hostingType"),
         hostingReadonly: document.getElementById("hostingReadonly"),
         isSeriesWrap: document.getElementById("isSeriesWrap"),
-        isSeries: document.getElementById("isSeries"),
+        isSeriesValue: document.getElementById("isSeriesValue"),
         isActive: document.getElementById("isActive"),
         templatesContainer: document.getElementById("templatesContainer"),
         startScratch: document.getElementById("startScratch"),
@@ -836,7 +839,7 @@
 
       function inferDefaultContentTypeKey() {
         if (!state.schema.hosting_type) return "";
-        if (state.schema.hosting_type === "hosted" || state.schema.hosting_type === "external") return "vod";
+        if (state.schema.hosting_type === "hosted" || state.schema.hosting_type === "external") return "movie";
         if (state.schema.hosting_type === "live_bcl") return "live_channel";
         if (state.schema.hosting_type === "ott_data") return state.schema.is_series ? "series" : "hub";
         return "custom";
@@ -884,7 +887,17 @@
         } else if (!selected.allowed_hosting_types.includes(state.schema.hosting_type)) {
           state.schema.hosting_type = "";
         }
-        state.schema.is_series = selected.hosting_type === "ott_data" ? selected.is_series : false;
+        if (selected.hosting_locked && state.schema.hosting_type === "ott_data") {
+          state.schema.is_series = selected.is_series;
+        } else {
+          applyHostingTypeDerivedState();
+        }
+      }
+
+      function applyHostingTypeDerivedState() {
+        if (state.schema.hosting_type !== "ott_data") {
+          state.schema.is_series = false;
+        }
       }
 
       function renderContentTypeCards() {
@@ -916,6 +929,8 @@
           ? selected.allowed_hosting_types
           : ALL_HOSTING_OPTIONS.map((o) => o.value);
 
+        applyHostingTypeDerivedState();
+
         el.hostingType.innerHTML = "";
         const placeholder = document.createElement("option");
         placeholder.value = "";
@@ -934,13 +949,12 @@
         el.schemaName.value = state.schema.name;
         el.description.value = state.schema.description;
         el.hostingType.value = state.schema.hosting_type;
-        el.isSeries.checked = !!state.schema.is_series;
         el.isActive.checked = !!state.schema.is_active;
 
         if (!selected || isCustom || !selected.hosting_locked) {
           el.hostingType.disabled = false;
           el.hostingType.classList.remove("readonly");
-          el.hostingReadonly.textContent = selected && selected.key === "vod"
+          el.hostingReadonly.textContent = selected && selected.key === "movie"
             ? "Choose between hosted or external for VOD."
             : "";
           el.hostingReadonly.classList.toggle("hidden", !el.hostingReadonly.textContent);
@@ -954,29 +968,24 @@
 
         const showSeries = state.schema.hosting_type === "ott_data";
         el.isSeriesWrap.classList.toggle("hidden", !showSeries);
-        if (!showSeries) {
-          state.schema.is_series = false;
-          el.isSeries.checked = false;
-        } else {
-          if (selected && selected.hosting_locked) {
-            state.schema.is_series = selected.is_series;
-            el.isSeries.checked = !!selected.is_series;
-            el.isSeries.disabled = true;
-          } else {
-            el.isSeries.disabled = false;
-          }
-        }
+        el.isSeriesValue.textContent = showSeries && state.schema.is_series ? "true" : "false";
       }
 
       function templatesCatalog() {
+        const isSeriesContent = state.contentType === "series";
+        const generalTitle = isSeriesContent ? "General (Series Metadata)" : "General (Movie/Series)";
+        const generalDescription = isSeriesContent
+          ? "Genre, Rating, Trailer for series-level metadata"
+          : "Genre, Rating, Trailer";
+        const generalSectionTitle = isSeriesContent ? "Series Metadata" : "General";
         return [
           {
             id: "general",
-            title: "General (VOD/Series)",
-            description: "Genre, Rating, Trailer",
+            title: generalTitle,
+            description: generalDescription,
             sections: [
               {
-                title: "General",
+                title: generalSectionTitle,
                 fields: [
                   fieldFromJson(GENRE_FIELD, true),
                   fieldFromJson(RATING_FIELD, true),
@@ -1646,6 +1655,10 @@
       function fieldToOutput(field) {
         const details = { field_type: field.type };
         const d = cloneDeep(field.details || {});
+        if (field.type === "input") {
+          if (d.input_type === "text") delete d.input_type;
+          if (d.inputType === "text") delete d.inputType;
+        }
         if ((field.type === "select" || field.type === "multiselect") && Array.isArray(d.options)) {
           d.options = d.options.map((opt) => ({
             label: opt.label || "",
@@ -1895,12 +1908,8 @@
 
         el.hostingType.addEventListener("change", () => {
           state.schema.hosting_type = el.hostingType.value;
+          applyHostingTypeDerivedState();
           syncIdentityUI();
-          refreshReview();
-        });
-
-        el.isSeries.addEventListener("change", () => {
-          state.schema.is_series = el.isSeries.checked;
           refreshReview();
         });
         el.isActive.addEventListener("change", () => {
