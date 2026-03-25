@@ -193,6 +193,7 @@
     }
 
     input[type="text"],
+    input[type="password"],
     input[type="number"],
     textarea,
     select {
@@ -208,6 +209,12 @@
     textarea {
       min-height: 92px;
       resize: vertical;
+    }
+
+    /* Ensure password fields don't keep browser light defaults */
+    input[type="password"] {
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .readonly {
@@ -636,7 +643,7 @@
               <div class="grid-2">
                 <div class="field">
                   <label for="uploadSiteId">Site ID</label>
-                  <input id="uploadSiteId" type="text" placeholder="e.g. aBcDeFgH" autocomplete="off">
+                  <input id="uploadSiteId" type="text" class="upload-input" placeholder="e.g. aBcDeFgH" autocomplete="off">
                 </div>
                 <div class="field">
                   <label for="uploadApiKey">Management API Key</label>
