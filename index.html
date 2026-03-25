@@ -325,6 +325,12 @@
       margin-top: 2px;
     }
 
+    .field-inline-error {
+      color: var(--error);
+      font-size: 0.76rem;
+      margin-top: 6px;
+    }
+
     .success {
       color: var(--success);
       font-size: 0.82rem;
@@ -1462,6 +1468,11 @@
           refreshReview();
         });
 
+        const inlineErr = document.createElement("div");
+        inlineErr.className = "field-inline-error";
+        inlineErr.textContent = "";
+        node.querySelector(".field-body").appendChild(inlineErr);
+
         node.querySelector(".toggle-field").addEventListener("click", () => {
           field.expanded = !field.expanded;
           renderSections();
@@ -1904,8 +1915,39 @@
         if (state.step === 4) {
           const secErr = errors.filter((m) => m.includes("Section "));
           setInlineError(el.sectionsErr, secErr.length ? secErr.join(" ") : "");
+          const fieldErrorMap = new Map();
+          errors.forEach((msg) => {
+            const m = msg.match(/^Section (\d+), Field (\d+): (.+)$/);
+            if (m) fieldErrorMap.set((Number(m[1]) - 1) + ":" + (Number(m[2]) - 1), m[3]);
+          });
+          const sectionNodes = Array.from(el.sectionsContainer.querySelectorAll(".section-card"));
+          sectionNodes.forEach((sectionNode, sectionIndex) => {
+            const fieldNodes = Array.from(sectionNode.querySelectorAll(".field-card"));
+            fieldNodes.forEach((fieldNode, fieldIndex) => {
+              const errNode = fieldNode.querySelector(".field-inline-error");
+              if (!errNode) return;
+              const key = sectionIndex + ":" + fieldIndex;
+              let msg = fieldErrorMap.get(key) || "";
+              if (!msg) {
+                const modelField = state.sections[sectionIndex] && state.sections[sectionIndex].fields
+                  ? state.sections[sectionIndex].fields[fieldIndex]
+                  : null;
+                if (modelField && (modelField.type === "select" || modelField.type === "multiselect")) {
+                  const opts = Array.isArray(modelField.details && modelField.details.options)
+                    ? modelField.details.options
+                    : [];
+                  if (opts.length < 2) msg = "Select/Multiselect fields require at least 2 options.";
+                }
+              }
+              errNode.textContent = msg;
+            });
+          });
         } else {
           setInlineError(el.sectionsErr, "");
+          const fieldErrNodes = el.sectionsContainer.querySelectorAll(".field-inline-error");
+          fieldErrNodes.forEach((n) => {
+            n.textContent = "";
+          });
         }
 
         el.reviewErrors.innerHTML = errors.length
@@ -1956,6 +1998,11 @@
           const errs = collectValidationErrors().filter(
             (e) => e.includes("Display Name") || e.includes("Name ") || e.includes("Hosting Type")
           );
+          refreshReview();
+          return errs.length === 0;
+        }
+        if (state.step === 4) {
+          const errs = collectValidationErrors().filter((e) => e.includes("Section "));
           refreshReview();
           return errs.length === 0;
         }
@@ -2098,6 +2145,7 @@
             setUploadStatus("error", "Upload failed. Please try downloading and uploading manually.");
             return;
           }
+          console.log("Upload payload:", schema);
 
           const oldBtnText = el.uploadBtn.textContent;
           el.uploadBtn.disabled = true;
