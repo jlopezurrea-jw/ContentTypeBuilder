@@ -1,0 +1,203 @@
+# SE Team — Cursor Rules
+# Place this file as `.cursorrules` in the root of every project
+
+## About This Project
+This is an internal tool built by the Solution Engineering team at JW Player (Connatix).
+It should visually match the JW Platform Dashboard (dashboard.jwplayer.com) so it feels
+like a natural extension of the product.
+
+---
+
+## Design System — JW Platform Style
+
+### Color Palette
+
+Primary blue:        #1A5CFF  (buttons, active tabs, links, selected sidebar items)
+Primary blue hover:  #144BCC
+Primary blue light:  #E8F0FE  (selected sidebar background, light blue highlights)
+Dark text:           #1A1A2E  (headings, primary text)
+Body text:           #3D3D4E  (secondary text, descriptions)
+Muted text:          #6B7280  (placeholders, timestamps, helper text)
+Section labels:      #1A5CFF  (uppercase sidebar category labels like "LIBRARY", "CURATION")
+Border color:        #E5E7EB  (table borders, card borders, input borders)
+Background:          #F7F8FA  (page background behind content areas)
+Surface white:       #FFFFFF  (cards, panels, modals, sidebar)
+Success green:       #22C55E  (status indicators like "Ready")
+Warning blue:        #3B82F6  (info alerts and banners)
+Alert bg:            #EFF6FF  (light blue info banner background)
+Media ID badge bg:   #ECFDF5  (light green background for media ID chips)
+Media ID badge text: #065F46  (dark green text for media ID chips)
+
+### Typography
+
+Font family:         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif
+Page title:          24px, font-weight 600, color #1A1A2E
+Section headings:    18px, font-weight 600, color #1A1A2E
+Sidebar categories:  11px, font-weight 700, uppercase, letter-spacing 0.5px, color #1A5CFF
+Sidebar items:       14px, font-weight 400, color #3D3D4E
+Sidebar active item: 14px, font-weight 500, color #1A5CFF, background #E8F0FE, border-left 3px solid #1A5CFF
+Table headers:       13px, font-weight 600, color #6B7280, uppercase
+Table body:          14px, font-weight 400, color #1A1A2E
+Small/helper text:   12px, color #6B7280
+
+### Layout
+
+- Page uses a fixed left sidebar (240px wide) + scrollable main content area
+- Sidebar: white background (#FFFFFF), right border 1px solid #E5E7EB
+- Main content area: #F7F8FA background with white content panels/cards
+- Content panels: white background, border-radius 8px, 1px solid #E5E7EB border, padding 24px
+- Max content width inside main area: 1200px with horizontal auto-margin
+- Top header bar: white background, bottom border 1px solid #E5E7EB, height ~56px, contains page title on the left and action buttons on the right
+
+### Logo
+
+- Top-left of sidebar: use the file jw-logo.png
+- Display it at approximately 40px height, auto width, maintaining aspect ratio
+- Below the logo, leave 24px spacing before the first nav section
+- Every project should include jw-logo.png in its root folder
+
+### Sidebar Structure
+
+- Fixed left sidebar, 240px wide, white background (#FFFFFF), right border 1px solid #E5E7EB
+- Logo at the top (see Logo section above)
+- Navigation is grouped under uppercase section labels
+- First section label: "SE TOOLS" (styled like JW Dashboard categories — uppercase, 11px, font-weight 700, letter-spacing 0.5px, color #1A5CFF)
+- First nav item under SE TOOLS: "SE Dashboard" with a home/grid icon — this always links to the main SE Dashboard page
+- Remaining nav items: one per tool (e.g., "Metadata Updater", "Campaign Forecaster", etc.)
+- The current tool's nav item is the active/selected item
+- Active/selected item: color #1A5CFF, background #E8F0FE, border-left 3px solid #1A5CFF, font-weight 500
+- Inactive items: color #3D3D4E, font-weight 400
+- Hover state: background #F3F4F6
+- Nav item styling: 14px font, padding 10px 16px, icons 20px (use simple SVG or unicode icons)
+- Do NOT include a "Settings" or "Property settings" section — these tools don't need one
+
+### Buttons
+
+Primary button:      background #1A5CFF, color white, border-radius 6px, padding 8px 16px, font-weight 500, 14px
+                     Hover: #144BCC
+Secondary button:    background white, border 1px solid #E5E7EB, color #1A1A2E, border-radius 6px
+                     Hover: background #F3F4F6
+Text/link button:    no background, color #1A5CFF, font-weight 500
+                     Hover: underline
+Danger button:       background #EF4444, color white (use sparingly)
+Button spacing:      8px gap between adjacent buttons
+Action buttons in header: secondary style for most, primary for the main CTA (e.g., "Save", "Upload media")
+
+### Tables
+
+- Clean, minimal table design — no heavy grid lines
+- Header row: 13px uppercase text, #6B7280 color, bottom border 1px solid #E5E7EB, no background color
+- Body rows: 14px, padding 16px vertically, bottom border 1px solid #F3F4F6
+- Row hover: background #F9FAFB
+- Sortable columns show a small chevron icon next to the header text
+- Status indicators: small green dot (8px) + "Ready" text in green
+- Media ID badges: light green rounded pill (background #ECFDF5, text #065F46, border-radius 4px, padding 2px 8px) with a copy icon
+- Table actions: three-dot menu (⋯) on the far right of each row
+- Filter bar above table: row of dropdown filter pills with border, border-radius 6px, icon + label + chevron
+
+### Forms & Inputs
+
+- Text inputs: border 1px solid #E5E7EB, border-radius 6px, padding 10px 12px, font-size 14px
+- Focus state: border-color #1A5CFF, box-shadow 0 0 0 3px rgba(26,92,255,0.1)
+- Labels: 14px, font-weight 500, color #1A1A2E, margin-bottom 6px
+- Helper/description text below inputs: 12px, color #6B7280
+- Placeholder text: #9CA3AF
+- Textareas: same styling as inputs, min-height 120px
+- Dropdowns/selects: same border and radius as inputs, with chevron icon on the right
+- Radio buttons: standard with label text, 14px
+- Search inputs: left-aligned search icon inside the input, larger padding-left
+
+### Tabs
+
+- Horizontal tab bar with items side by side
+- Active tab: color #1A5CFF, font-weight 500, bottom border 2px solid #1A5CFF
+- Inactive tab: color #6B7280, no bottom border
+- Tab hover: color #1A1A2E
+- Tab font-size: 14px
+- Spacing between tabs: 24px
+
+### Modals / Dialogs
+
+- Centered overlay with semi-transparent dark backdrop
+- Modal: white background, border-radius 12px, padding 24px, max-width 560px
+- Modal title: 18px, font-weight 600, color #1A1A2E
+- Close button or "Cancel" text button + primary "Save" button in bottom-right
+- Sections within modal separated by light borders or spacing
+
+### Info Banners / Alerts
+
+- Light blue background (#EFF6FF), border-radius 8px, padding 12px 16px
+- Left icon: blue info circle
+- Text: 14px, color #1E40AF
+- Dismissible with an X button on the right
+
+### Breadcrumbs
+
+- Format: "← Parent / Current Page"
+- Back arrow + link text in #1A5CFF
+- Current page name in #1A1A2E
+- Font-size: 14px
+
+### Drag & Drop / Upload Areas
+
+- Dashed border: 2px dashed #D1D5DB, border-radius 8px
+- Center-aligned icon + "Drag and drop or select files" text
+- Link text ("select files") in #1A5CFF with underline
+- Helper text below in #6B7280, 12px
+- Hover/dragover state: border-color #1A5CFF, background #F8FAFF
+
+### Status Indicators & Badges
+
+- Status dot: 8px circle, inline before text
+- Green (#22C55E) = Ready/Active, Yellow (#F59E0B) = Processing, Red (#EF4444) = Error
+- ID badges: small pill shape, monospace font for IDs, copy-to-clipboard icon
+
+### Spacing & General Rules
+
+- Use 8px as the base spacing unit (8, 16, 24, 32, 48)
+- Border-radius: 6px for inputs and buttons, 8px for cards and panels, 12px for modals
+- Box-shadow for elevated elements (modals, dropdowns): 0 4px 12px rgba(0,0,0,0.1)
+- Transitions: 150ms ease for hover states and color changes
+- Icons: use Lucide React icon set, 20px size for sidebar/nav, 16px inline
+
+---
+
+## Tech Stack
+
+- Static HTML, CSS, and vanilla JavaScript unless a framework is specifically needed
+- No external CSS frameworks (no Bootstrap, no Tailwind) — write custom CSS following the design system above
+- If a project needs a framework, prefer React with plain CSS or CSS modules
+- Every project MUST include a `.gitlab-ci.yml` for GitLab Pages deployment:
+
+```yaml
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp -r * public/ 2>/dev/null || true
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+```
+
+---
+
+## Code Style
+
+- Use clean, readable code — we are Solutions Engineers, not developers
+- Add comments explaining non-obvious logic
+- Keep files organized: separate HTML, CSS, and JS files when possible
+- Use descriptive variable and function names
+- Prefer simplicity over cleverness
+
+---
+
+## Important Notes
+
+- These tools are internal — prioritize functionality and clarity over polish
+- Every tool should have a sidebar navigation matching the JW Dashboard pattern if it has multiple views
+- Single-view tools can skip the sidebar but should keep the same header, typography, and color palette
+- Always include a page title in the top header area
+- When in doubt, refer to the JW Platform Dashboard for visual guidance
