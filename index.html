@@ -536,10 +536,6 @@
                 <span>Is Active</span>
                 <input id="isActive" type="checkbox" checked>
               </div>
-              <div class="switchline">
-                <span>Searchable</span>
-                <input id="searchable" type="checkbox" checked>
-              </div>
             </div>
           </div>
         </section>
@@ -755,8 +751,7 @@
           description: "",
           hosting_type: "",
           is_series: false,
-          is_active: true,
-          searchable: true
+          is_active: true
         },
         autoName: true,
         sections: []
@@ -776,7 +771,6 @@
         isSeriesWrap: document.getElementById("isSeriesWrap"),
         isSeries: document.getElementById("isSeries"),
         isActive: document.getElementById("isActive"),
-        searchable: document.getElementById("searchable"),
         templatesContainer: document.getElementById("templatesContainer"),
         startScratch: document.getElementById("startScratch"),
         addSectionBtn: document.getElementById("addSectionBtn"),
@@ -942,7 +936,6 @@
         el.hostingType.value = state.schema.hosting_type;
         el.isSeries.checked = !!state.schema.is_series;
         el.isActive.checked = !!state.schema.is_active;
-        el.searchable.checked = !!state.schema.searchable;
 
         if (!selected || isCustom || !selected.hosting_locked) {
           el.hostingType.disabled = false;
@@ -1651,35 +1644,26 @@
       }
 
       function fieldToOutput(field) {
-        const details = {};
-        details.field_type = field.type;
-
+        const details = { field_type: field.type };
         const d = cloneDeep(field.details || {});
-        Object.keys(d).forEach((key) => {
-          if (d[key] === "" || d[key] === null || d[key] === undefined) {
-            delete d[key];
-          }
-        });
         if ((field.type === "select" || field.type === "multiselect") && Array.isArray(d.options)) {
           d.options = d.options.map((opt) => ({
             label: opt.label || "",
             value: opt.value || ""
           }));
         }
-
         Object.keys(d).forEach((key) => {
           details[key] = d[key];
         });
 
-        const out = {
-          description: field.description || "",
-          details: details,
-          label: field.label || "",
-          param: field.param || ""
-        };
+        const out = {};
+        if (field.description) out.description = field.description;
+        out.details = details;
+        out.label = field.label || "";
+        out.param = field.param || "";
         if (field.required) out.required = true;
         if (field.read_only) out.read_only = true;
-        return out;
+        return cleanupObject(out);
       }
 
       function sectionToOutput(section) {
@@ -1689,28 +1673,56 @@
         };
       }
 
+      function cleanupValue(value, keyName) {
+        if (value === null || value === undefined) return undefined;
+        if (typeof value === "string") {
+          return value === "" ? undefined : value;
+        }
+        if (Array.isArray(value)) {
+          const cleaned = value
+            .map((item) => cleanupValue(item))
+            .filter((item) => item !== undefined);
+          if (cleaned.length === 0 && keyName !== "languages" && keyName !== "sections") {
+            return undefined;
+          }
+          return cleaned;
+        }
+        if (typeof value === "object") {
+          const out = {};
+          Object.keys(value).forEach((key) => {
+            const cleaned = cleanupValue(value[key], key);
+            if (cleaned !== undefined) out[key] = cleaned;
+          });
+          return Object.keys(out).length > 0 ? out : undefined;
+        }
+        return value;
+      }
+
+      function cleanupObject(obj) {
+        return cleanupValue(obj) || {};
+      }
+
       function deriveLanguages(hostingType) {
-        if (hostingType === "external") return null;
+        if (hostingType === "external") return undefined;
         return [];
       }
 
       function buildOutputObject() {
         const hostedType = state.schema.hosting_type;
         const isSeries = hostedType === "ott_data" ? !!state.schema.is_series : false;
+        const schemaOut = {
+          description: state.schema.description || "",
+          display_name: state.schema.display_name || "",
+          hosting_type: hostedType,
+          is_active: !!state.schema.is_active,
+          is_series: isSeries,
+          languages: deriveLanguages(hostedType),
+          name: state.schema.name || "",
+          searchable: true,
+          sections: state.sections.map(sectionToOutput)
+        };
         return {
-          schemas: [
-            {
-              description: state.schema.description || "",
-              display_name: state.schema.display_name || "",
-              hosting_type: hostedType,
-              is_active: !!state.schema.is_active,
-              is_series: isSeries,
-              languages: deriveLanguages(hostedType),
-              name: state.schema.name || "",
-              searchable: !!state.schema.searchable,
-              sections: state.sections.map(sectionToOutput)
-            }
-          ]
+          schemas: [cleanupObject(schemaOut)]
         };
       }
 
@@ -1895,10 +1907,6 @@
           state.schema.is_active = el.isActive.checked;
           refreshReview();
         });
-        el.searchable.addEventListener("change", () => {
-          state.schema.searchable = el.searchable.checked;
-          refreshReview();
-        });
 
         el.startScratch.addEventListener("change", () => {
           state.startFromScratch = el.startScratch.checked;
@@ -1962,7 +1970,6 @@
         state.schema.hosting_type = "";
         state.schema.is_series = false;
         state.schema.is_active = true;
-        state.schema.searchable = true;
         state.contentType = inferDefaultContentTypeKey();
       }
 
