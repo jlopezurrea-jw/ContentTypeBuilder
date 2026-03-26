@@ -293,6 +293,41 @@
       margin-top: 12px;
     }
 
+    .import-panel {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px dashed #dadce0;
+      border-radius: 10px;
+      background: #fafbfc;
+    }
+
+    .import-panel h3 {
+      margin: 0 0 6px;
+      font-size: 0.96rem;
+      color: #1b1f2e;
+    }
+
+    .import-panel-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .import-status {
+      margin-top: 8px;
+      font-size: 0.84rem;
+    }
+
+    .import-status.success {
+      color: #188038;
+    }
+
+    .import-status.error {
+      color: #e53935;
+    }
+
     .option-card {
       border: 1px solid #e0e0e0;
       background: #ffffff;
@@ -702,6 +737,15 @@
           <p class="subtle" style="margin-top:6px;">Use <strong>Movie</strong> for standalone VOD, <strong>Episode</strong> for child items in a series, and <strong>Series</strong> for the parent container.</p>
           <div id="contentTypeCards" class="content-cards"></div>
           <div id="contentTypeErr" class="error hidden" style="margin-top:10px;"></div>
+          <div class="import-panel">
+            <h3>Or edit an existing content type</h3>
+            <p class="inline-note">Import an existing JWX content type JSON file to pre-populate this wizard.</p>
+            <div class="import-panel-actions">
+              <button id="importJsonBtn" type="button" class="se-btn-secondary">Import JSON file</button>
+              <input id="importJsonInput" type="file" accept=".json,application/json" class="hidden">
+            </div>
+            <div id="importJsonStatus" class="import-status hidden"></div>
+          </div>
         </section>
 
         <section class="step" data-step="2">
@@ -978,6 +1022,7 @@
       const state = {
         step: 1,
         maxVisitedStep: 1,
+        importedMode: false,
         contentType: "",
         selectedTemplates: new Set(),
         startFromScratch: false,
@@ -999,6 +1044,9 @@
         backBtn: document.getElementById("backBtn"),
         nextBtn: document.getElementById("nextBtn"),
         contentTypeCards: document.getElementById("contentTypeCards"),
+        importJsonBtn: document.getElementById("importJsonBtn"),
+        importJsonInput: document.getElementById("importJsonInput"),
+        importJsonStatus: document.getElementById("importJsonStatus"),
         displayName: document.getElementById("displayName"),
         schemaName: document.getElementById("schemaName"),
         description: document.getElementById("description"),
@@ -1008,6 +1056,7 @@
         isSeriesValue: document.getElementById("isSeriesValue"),
         isActive: document.getElementById("isActive"),
         templatesContainer: document.getElementById("templatesContainer"),
+        templatesEmptyNote: document.getElementById("templatesEmptyNote"),
         startScratch: document.getElementById("startScratch"),
         addSectionBtn: document.getElementById("addSectionBtn"),
         sectionsContainer: document.getElementById("sectionsContainer"),
@@ -1080,7 +1129,8 @@
 
       function inferDefaultContentTypeKey() {
         if (!state.schema.hosting_type) return "";
-        if (state.schema.hosting_type === "hosted" || state.schema.hosting_type === "external") return "movie";
+        if (state.schema.hosting_type === "hosted") return state.schema.is_series ? "episode" : "movie";
+        if (state.schema.hosting_type === "external") return "movie";
         if (state.schema.hosting_type === "live_bcl") return "live_channel";
         if (state.schema.hosting_type === "ott_data") return state.schema.is_series ? "series" : "hub";
         return "custom";
@@ -1097,9 +1147,10 @@
           const pill = document.createElement("button");
           pill.type = "button";
           pill.className = "step-pill";
-          const unlocked = stepNum <= getStepUnlockLimit();
+          const isSkippedTemplateStep = state.importedMode && stepNum === 3;
+          const unlocked = !isSkippedTemplateStep && stepNum <= getStepUnlockLimit();
           pill.classList.toggle("locked", !unlocked);
-          if (stepNum !== state.step && stepNum <= state.maxVisitedStep) pill.classList.add("done");
+          if (!isSkippedTemplateStep && stepNum !== state.step && stepNum <= state.maxVisitedStep) pill.classList.add("done");
           if (stepNum === state.step) pill.classList.add("active");
           pill.textContent = label;
           pill.disabled = !unlocked;
@@ -1443,6 +1494,18 @@
           return true;
         });
         el.templatesContainer.innerHTML = "";
+        if (el.templatesEmptyNote) {
+          if (state.importedMode) {
+            el.templatesEmptyNote.textContent = "Templates are skipped for imported content types.";
+            el.templatesEmptyNote.classList.remove("hidden");
+          } else if (available.length === 0) {
+            el.templatesEmptyNote.textContent = "No templates available for this content type.";
+            el.templatesEmptyNote.classList.remove("hidden");
+          } else {
+            el.templatesEmptyNote.textContent = "";
+            el.templatesEmptyNote.classList.add("hidden");
+          }
+        }
         available.forEach((tpl) => {
           const selected = state.selectedTemplates.has(tpl.id);
           const card = document.createElement("button");
@@ -1878,6 +1941,136 @@
         root.appendChild(note);
       }
 
+      function resolveImportedFieldType(fieldLike) {
+        const explicit = fieldLike && fieldLike.type;
+        if (typeof explicit === "string" && explicit.trim()) return explicit.trim();
+        const detailsType = fieldLike && fieldLike.details && fieldLike.details.field_type;
+        if (typeof detailsType === "string" && detailsType.trim()) return detailsType.trim();
+        return "input";
+      }
+
+      function normalizeImportedOptions(options) {
+        if (!Array.isArray(options)) return undefined;
+        const normalized = options
+          .map((opt) => {
+            if (typeof opt === "string") {
+              return { label: opt, value: opt, autoValue: false };
+            }
+            if (!opt || typeof opt !== "object") return null;
+            const label = opt.label !== undefined ? String(opt.label) : "";
+            const value = opt.value !== undefined ? String(opt.value) : label;
+            return { label, value, autoValue: false };
+          })
+          .filter(Boolean);
+        return normalized;
+      }
+
+      function readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+          reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+          reader.readAsText(file);
+        });
+      }
+
+      function importFieldFromSchema(rawField) {
+        if (!rawField || typeof rawField !== "object") return null;
+        const type = resolveImportedFieldType(rawField);
+        const rawDetails = cloneDeep(rawField.details || {});
+        if (rawDetails && typeof rawDetails === "object") delete rawDetails.field_type;
+        const normalized = normalizeDetails(type, rawDetails || {});
+        const normalizedOptions = normalizeImportedOptions(rawDetails.options);
+        if (normalizedOptions) normalized.options = normalizedOptions;
+        const importedReadOnly = rawField.read_only === true;
+        return createField({
+          label: rawField.label || "",
+          param: rawField.param || "",
+          description: rawField.description || "",
+          required: rawField.required === true,
+          read_only: importedReadOnly,
+          read_onlyTouched: importedReadOnly,
+          type: type,
+          details: normalized,
+          fromTemplate: false
+        });
+      }
+
+      function importSectionFromSchema(rawSection) {
+        if (!rawSection || typeof rawSection !== "object") return null;
+        const section = createSection(rawSection.title || "Imported Section", false, []);
+        section.collapsed = false;
+        const fields = Array.isArray(rawSection.fields) ? rawSection.fields : [];
+        section.fields = fields
+          .map(importFieldFromSchema)
+          .filter(Boolean);
+        return section;
+      }
+
+      function extractSchemaFromImportPayload(payload) {
+        if (!payload || typeof payload !== "object") return null;
+        if (Array.isArray(payload.schemas) && payload.schemas[0] && typeof payload.schemas[0] === "object") {
+          return payload.schemas[0];
+        }
+        if (payload.name || payload.display_name || payload.sections || payload.hosting_type) {
+          return payload;
+        }
+        return null;
+      }
+
+      function applyImportedSchema(schema) {
+        state.schema.display_name = schema.display_name ? String(schema.display_name) : "";
+        state.schema.name = schema.name ? String(schema.name) : "";
+        state.schema.description = schema.description ? String(schema.description) : "";
+        state.schema.hosting_type = schema.hosting_type ? String(schema.hosting_type) : "";
+        state.schema.is_active = schema.is_active !== false;
+        state.schema.is_series = schema.is_series === true;
+        state.importedMode = true;
+        state.autoName = false;
+
+        state.contentType = inferDefaultContentTypeKey();
+        if (!state.contentType) state.contentType = "custom";
+
+        state.selectedTemplates.clear();
+        state.startFromScratch = true;
+        el.startScratch.checked = true;
+
+        const importedSections = Array.isArray(schema.sections) ? schema.sections : [];
+        state.sections = importedSections
+          .map(importSectionFromSchema)
+          .filter(Boolean);
+      }
+
+      async function importSchemaFromFile(file) {
+        try {
+          const text = await readFileAsText(file);
+          const parsed = JSON.parse(text);
+          const schema = extractSchemaFromImportPayload(parsed);
+          if (!schema) return false;
+          applyImportedSchema(schema);
+          syncIdentityUI();
+          renderContentTypeCards();
+          renderTemplates();
+          renderSections();
+          refreshReview();
+          setImportStatus("success", "Content type imported successfully. Review and edit below.");
+          goToStep(2, true);
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function setImportStatus(type, msg) {
+        el.importJsonStatus.textContent = msg || "";
+        el.importJsonStatus.classList.remove("hidden", "success", "error");
+        if (!msg) {
+          el.importJsonStatus.classList.add("hidden");
+          return;
+        }
+        el.importJsonStatus.classList.add(type === "success" ? "success" : "error");
+      }
+
       function moveSection(index, delta) {
         const target = index + delta;
         if (target < 0 || target >= state.sections.length) return;
@@ -2168,6 +2361,24 @@
       }
 
       function parseEvents() {
+        if (el.importJsonBtn && el.importJsonInput) {
+          el.importJsonBtn.addEventListener("click", () => {
+            setImportStatus("", "");
+            el.importJsonInput.value = "";
+            el.importJsonInput.click();
+          });
+
+          el.importJsonInput.addEventListener("change", async (event) => {
+            const file = event.target && event.target.files ? event.target.files[0] : null;
+            if (!file) return;
+            const ok = await importSchemaFromFile(file);
+            event.target.value = "";
+            if (!ok) {
+              setImportStatus("error", "Invalid file. Please upload a valid JWX content type JSON file.");
+            }
+          });
+        }
+
         el.backBtn.addEventListener("click", () => goToStep(state.step - 1));
         el.nextBtn.addEventListener("click", () => {
           if (!validateCurrentStep()) return;
@@ -2352,6 +2563,7 @@
       }
 
       function initDefaults() {
+        state.importedMode = false;
         state.schema.display_name = "";
         state.schema.name = "";
         state.schema.description = "";
