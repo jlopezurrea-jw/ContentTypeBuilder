@@ -7,17 +7,17 @@
   <link rel="stylesheet" href="https://se-shared-assets-dfb3a6.gitlab.io/se-base.css">
   <style>
     :root {
-      --bg: #0d1117;
-      --panel: #1b1f2e;
-      --panel-soft: #242b40;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f8f9fa;
       --primary: #0072ff;
-      --text: #ffffff;
-      --muted: #8b92a5;
+      --text: #1b1f2e;
+      --muted: #9aa0ac;
       --success: #00c853;
-      --error: #ff3d57;
+      --error: #e53935;
       --warning: #ffb020;
-      --border: #2a334d;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --border: #dadce0;
+      --shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
     }
 
     * {
@@ -31,6 +31,14 @@
 
     .se-content {
       padding: 0 0 10px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid #e8eaed;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 18px;
     }
 
     h2 {
@@ -55,13 +63,13 @@
       appearance: none;
       width: 100%;
       border: 0;
-      background: #e0e0e0;
-      border-radius: 999px;
-      padding: 10px 12px;
+      background: #f0f0f0;
+      border-radius: 20px;
+      padding: 10px 14px;
       text-align: center;
-      color: #8b92a5;
+      color: #9aa0ac;
       font-size: 0.82rem;
-      transition: all 0.25s ease;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .step-pill.locked {
@@ -72,7 +80,7 @@
     .step-pill.active {
       color: #ffffff;
       border: 0;
-      box-shadow: none;
+      box-shadow: 0 3px 10px rgba(0, 114, 255, 0.24);
       background: #0072ff;
     }
 
@@ -80,6 +88,12 @@
       color: #1b1f2e;
       border: 1px solid #1b1f2e;
       background: #ffffff;
+    }
+
+    .step-pill.done::before {
+      content: "✓ ";
+      font-weight: 700;
+      opacity: 0.75;
     }
 
     .step-container {
@@ -110,33 +124,63 @@
     }
 
     .se-btn-primary {
-      background: var(--primary);
-      border-color: var(--primary);
+      background: #0072ff;
+      border: 1px solid #0072ff;
+      color: #ffffff;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .se-btn-primary:hover {
+      background: #0064de;
+      border-color: #0064de;
     }
 
     .se-btn-secondary {
-      border: 1px solid #e0e0e0;
+      border: 1px solid #1b1f2e;
       color: #1b1f2e;
-      background: #e0e0e0;
+      background: #ffffff;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .se-btn-secondary:hover {
+      background: #f7f8fa;
+    }
+
+    .se-btn-utility {
+      border: 0;
+      background: transparent;
+      color: #8a90a1;
+      border-radius: 6px;
+      min-width: 28px;
+      min-height: 28px;
+      padding: 4px 8px;
+      box-shadow: none;
+    }
+
+    .se-btn-utility:hover {
+      background: #f1f3f4;
+      color: #1b1f2e;
     }
 
     .se-btn-text {
-      border: 1px solid #e0e0e0;
+      border: 1px solid #dadce0;
       color: #1b1f2e;
       background: transparent;
+      border-radius: 6px;
     }
 
     .btn-danger,
     .se-btn-text.btn-danger {
-      border: 1px solid #ff3d57;
-      background: #ff3d57;
-      color: #ffffff;
+      border: 1px solid #e53935;
+      background: #ffffff;
+      color: #e53935;
     }
 
-    #backBtn {
-      border: 1px solid #1b1f2e;
-      background: #1b1f2e;
-      color: #ffffff;
+    .btn-danger:hover,
+    .se-btn-text.btn-danger:hover {
+      background: #fdecea;
     }
 
     #backBtn:disabled {
@@ -175,12 +219,19 @@
     .se-input,
     .se-textarea {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      border: 1px solid #dadce0;
       background: #ffffff;
       color: #1b1f2e;
-      padding: 9px 11px;
+      padding: 10px 12px;
       font-size: 0.92rem;
+    }
+
+    .se-input:focus,
+    .se-textarea:focus {
+      outline: none;
+      border-color: #0072ff;
+      box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.14);
     }
 
     .readonly {
@@ -214,21 +265,23 @@
     .option-card {
       border: 1px solid #e0e0e0;
       background: #ffffff;
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 14px;
       cursor: pointer;
-      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
       min-height: 110px;
     }
 
     .option-card:hover {
       transform: translateY(-1px);
-      border-color: #4a5f8e;
+      border-color: #0072ff;
+      background: #f0f6ff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
 
     .option-card.selected {
-      border-color: #c8d8f7;
-      background: #e8f0ff;
+      border-color: #0072ff;
+      background: #e8f0fe;
     }
 
     .option-card h3 {
@@ -245,7 +298,11 @@
 
     .option-card.selected h3,
     .option-card.selected p {
-      color: #1b1f2e;
+      color: #1a73e8;
+    }
+
+    .option-card.selected h3 {
+      font-weight: 700;
     }
 
     .template-list {
@@ -313,11 +370,17 @@
     }
 
     .section-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid #e8eaed;
+      border-left: 3px solid #d8e4fb;
       background: #ffffff;
-      border-radius: 12px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       margin-bottom: 12px;
       overflow: hidden;
+    }
+
+    .section-card:has(.section-body:not(.hidden)) {
+      border-left-color: #0072ff;
     }
 
     .section-card.from-template {
@@ -336,6 +399,21 @@
       flex-wrap: wrap;
     }
 
+    .section-title-input {
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 2px 0;
+    }
+
+    .section-title-input:focus {
+      border: 0 !important;
+      outline: none;
+      box-shadow: none !important;
+    }
+
     .section-controls,
     .field-controls {
       display: flex;
@@ -348,9 +426,11 @@
     }
 
     .field-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid #e8eaed;
       background: #ffffff;
-      border-radius: 10px;
+      border-radius: 8px;
+      margin-left: 12px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       margin-bottom: 10px;
       overflow: hidden;
     }
@@ -386,7 +466,23 @@
 
     .field-body {
       padding: 10px;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid #eef1f4;
+    }
+
+    .field > label {
+      color: #6f7685;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .field small,
+    .field .inline-note {
+      color: #9aa0ac;
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: block;
     }
 
     .summary-grid {
@@ -414,8 +510,8 @@
 
     .json-wrap {
       border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      background: #ffffff;
+      border-radius: 8px;
+      background: #f8f9fa;
       overflow: auto;
       max-height: 450px;
     }
@@ -426,13 +522,14 @@
       font-size: 0.84rem;
       line-height: 1.5;
       color: #1b1f2e;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    .json-key { color: #7cc3ff; }
-    .json-string { color: #9af59f; }
-    .json-number { color: #ffcb6b; }
-    .json-boolean { color: #ff8aa1; }
-    .json-null { color: #c5b3ff; }
+    .json-key { color: #1a73e8; }
+    .json-string { color: #188038; }
+    .json-number { color: #fb8c00; }
+    .json-boolean { color: #fb8c00; }
+    .json-null { color: #9aa0ac; }
 
     .inline-note {
       font-size: 0.78rem;
@@ -447,7 +544,7 @@
     }
 
     .divider {
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid #e8eaed;
       margin: 12px 0;
     }
 
@@ -477,6 +574,30 @@
 
     .upload-toggle.open {
       border-bottom-color: #e0e0e0;
+    }
+
+    .toggle-section,
+    .toggle-field,
+    .move-up,
+    .move-down,
+    .field-move-up,
+    .field-move-down {
+      border: 0 !important;
+      background: transparent !important;
+      color: #7b8190 !important;
+      padding: 6px 8px;
+      min-width: auto;
+      border-radius: 6px;
+    }
+
+    .toggle-section:hover,
+    .toggle-field:hover,
+    .move-up:hover,
+    .move-down:hover,
+    .field-move-up:hover,
+    .field-move-down:hover {
+      background: #f1f3f4 !important;
+      color: #1b1f2e !important;
     }
 
     .upload-body {
@@ -588,7 +709,7 @@
         <section class="step" data-step="4">
           <h2>Step 4 — Sections & Fields Builder</h2>
           <div class="actions" style="margin-top:8px;">
-            <button id="addSectionBtn" type="button" class="se-btn-secondary">+ Add Section</button>
+            <button id="addSectionBtn" type="button" class="se-btn-primary">+ Add Section</button>
           </div>
           <div id="sectionsErr" class="error hidden"></div>
           <div id="sectionsContainer" style="margin-top:12px;"></div>
@@ -655,14 +776,14 @@
     <article class="section-card">
       <div class="section-header">
         <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:180px;">
-          <button type="button" class="toggle-section se-btn-secondary">▾</button>
+          <button type="button" class="toggle-section se-btn-utility">▾</button>
           <input type="text" class="section-title-input se-input" placeholder="Section title">
           <span class="template-chip hidden">Template</span>
         </div>
         <div class="section-controls">
-          <button type="button" class="move-up se-btn-secondary">↑</button>
-          <button type="button" class="move-down se-btn-secondary">↓</button>
-          <button type="button" class="add-field se-btn-secondary">+ Field</button>
+          <button type="button" class="move-up se-btn-utility">↑</button>
+          <button type="button" class="move-down se-btn-utility">↓</button>
+          <button type="button" class="add-field se-btn-primary">+ Field</button>
           <button type="button" class="delete-section se-btn-text btn-danger">Delete</button>
         </div>
       </div>
@@ -674,13 +795,13 @@
     <article class="field-card">
       <div class="field-head">
         <div class="field-title">
-          <button type="button" class="toggle-field se-btn-secondary">▾</button>
+          <button type="button" class="toggle-field se-btn-utility">▾</button>
           <strong class="field-title-text">New Field</strong>
           <span class="template-chip hidden">Template</span>
         </div>
         <div class="field-controls">
-          <button type="button" class="field-move-up se-btn-secondary">↑</button>
-          <button type="button" class="field-move-down se-btn-secondary">↓</button>
+          <button type="button" class="field-move-up se-btn-utility">↑</button>
+          <button type="button" class="field-move-down se-btn-utility">↓</button>
           <button type="button" class="delete-field se-btn-text btn-danger">Delete</button>
         </div>
       </div>
