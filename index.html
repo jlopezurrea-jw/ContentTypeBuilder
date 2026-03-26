@@ -117,7 +117,7 @@
     .se-btn-secondary {
       border: 1px solid #e0e0e0;
       color: #1b1f2e;
-      background: #ffffff;
+      background: #e0e0e0;
     }
 
     .se-btn-text {
@@ -128,8 +128,20 @@
 
     .btn-danger,
     .se-btn-text.btn-danger {
-      border-color: rgba(255, 61, 87, 0.4);
-      color: #ffc4cc;
+      border: 1px solid #ff3d57;
+      background: #ff3d57;
+      color: #ffffff;
+    }
+
+    #backBtn {
+      border: 1px solid #1b1f2e;
+      background: #1b1f2e;
+      color: #ffffff;
+    }
+
+    #backBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .grid-2 {
@@ -651,7 +663,7 @@
           <button type="button" class="move-up se-btn-secondary">↑</button>
           <button type="button" class="move-down se-btn-secondary">↓</button>
           <button type="button" class="add-field se-btn-secondary">+ Field</button>
-          <button type="button" class="delete-section se-btn-text">Delete</button>
+          <button type="button" class="delete-section se-btn-text btn-danger">Delete</button>
         </div>
       </div>
       <div class="section-body"></div>
@@ -669,7 +681,7 @@
         <div class="field-controls">
           <button type="button" class="field-move-up se-btn-secondary">↑</button>
           <button type="button" class="field-move-down se-btn-secondary">↓</button>
-          <button type="button" class="delete-field se-btn-text">Delete</button>
+          <button type="button" class="delete-field se-btn-text btn-danger">Delete</button>
         </div>
       </div>
       <div class="field-body">
@@ -1581,7 +1593,7 @@
             const del = document.createElement("button");
             del.type = "button";
             del.textContent = "Delete";
-            del.className = "se-btn-text";
+            del.className = "se-btn-text btn-danger";
             del.addEventListener("click", () => {
               d.options.splice(idx, 1);
               renderSections();
