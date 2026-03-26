@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JWX Content Type Builder Wizard</title>
+  <link rel="stylesheet" href="https://se-shared-assets-dfb3a6.gitlab.io/se-base.css">
   <style>
     :root {
       --bg: #0d1117;
@@ -25,29 +26,11 @@
 
     body {
       margin: 0;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
       line-height: 1.4;
     }
 
-    .container {
-      width: min(1100px, 96vw);
-      margin: 28px auto;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      padding: 20px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 1.6rem;
-      font-weight: 700;
+    .se-content {
+      padding: 0 0 10px;
     }
 
     h2 {
@@ -125,43 +108,27 @@
       flex-wrap: wrap;
     }
 
-    button,
-    .button {
-      background: #0e182c;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.92rem;
-      cursor: pointer;
-      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    }
-
-    button:hover,
-    .button:hover {
-      transform: translateY(-1px);
-      border-color: #415380;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-primary {
+    .se-btn-primary {
       background: var(--primary);
       border-color: var(--primary);
     }
 
-    .btn-danger {
-      border-color: rgba(255, 61, 87, 0.4);
-      color: #ffc4cc;
+    .se-btn-secondary {
+      border-color: rgba(0, 114, 255, 0.45);
+      color: #d6e5ff;
+      background: #0f1a30;
     }
 
-    .btn-success {
-      border-color: rgba(0, 200, 83, 0.4);
-      color: #a6f6c6;
+    .se-btn-text {
+      border-color: rgba(255, 255, 255, 0.18);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .btn-danger,
+    .se-btn-text.btn-danger {
+      border-color: rgba(255, 61, 87, 0.4);
+      color: #ffc4cc;
     }
 
     .grid-2 {
@@ -187,16 +154,13 @@
       margin-bottom: 10px;
     }
 
-    label {
+    .se-label {
       font-size: 0.84rem;
       color: var(--muted);
     }
 
-    input[type="text"],
-    input[type="password"],
-    input[type="number"],
-    textarea,
-    select {
+    .se-input,
+    .se-textarea {
       width: 100%;
       border-radius: 10px;
       border: 1px solid #34435f;
@@ -204,17 +168,6 @@
       color: var(--text);
       padding: 9px 11px;
       font-size: 0.92rem;
-    }
-
-    textarea {
-      min-height: 92px;
-      resize: vertical;
-    }
-
-    /* Ensure password fields don't keep browser light defaults */
-    input[type="password"] {
-      -webkit-appearance: none;
-      appearance: none;
     }
 
     .readonly {
@@ -538,9 +491,11 @@
   </style>
 </head>
 <body>
-  <main class="container">
-    <div class="panel">
-      <h1>JWX Content Type Builder Wizard</h1>
+  <div id="se-sidebar" class="se-sidebar"></div>
+  <div class="se-main">
+    <div class="se-header"><h1>JWX Content Type Builder Wizard</h1></div>
+    <div class="se-content">
+    <div class="se-panel panel">
       <p class="subtle">Build, review, and download a schema JSON file ready for dashboard upload.</p>
 
       <div id="progress" class="wizard-progress"></div>
@@ -558,23 +513,23 @@
           <h2>Step 2 — Schema Identity</h2>
           <div class="grid-2">
             <div class="field">
-              <label for="displayName">Display Name *</label>
-              <input id="displayName" type="text" placeholder="e.g. Feature Film">
+              <label for="displayName" class="se-label">Display Name *</label>
+              <input id="displayName" type="text" class="se-input" placeholder="e.g. Feature Film">
               <div id="displayNameErr" class="error hidden"></div>
             </div>
             <div class="field">
-              <label for="schemaName">Name (API identifier) *</label>
-              <input id="schemaName" type="text" placeholder="feature_film">
+              <label for="schemaName" class="se-label">Name (API identifier) *</label>
+              <input id="schemaName" type="text" class="se-input" placeholder="feature_film">
               <div class="inline-note">Auto-generated from Display Name (editable).</div>
               <div id="schemaNameErr" class="error hidden"></div>
             </div>
             <div class="field full">
-              <label for="description">Description</label>
-              <input id="description" type="text" placeholder="Short purpose summary">
+              <label for="description" class="se-label">Description</label>
+              <input id="description" type="text" class="se-input" placeholder="Short purpose summary">
             </div>
             <div class="field">
-              <label for="hostingType">Hosting Type</label>
-              <select id="hostingType">
+              <label for="hostingType" class="se-label">Hosting Type</label>
+              <select id="hostingType" class="se-input">
                 <option value="">Select hosting type</option>
                 <option value="hosted">hosted — JWP hosts the video file</option>
                 <option value="external">external — video hosted externally</option>
@@ -612,7 +567,7 @@
         <section class="step" data-step="4">
           <h2>Step 4 — Sections & Fields Builder</h2>
           <div class="actions" style="margin-top:8px;">
-            <button id="addSectionBtn" type="button">+ Add Section</button>
+            <button id="addSectionBtn" type="button" class="se-btn-secondary">+ Add Section</button>
           </div>
           <div id="sectionsErr" class="error hidden"></div>
           <div id="sectionsContainer" style="margin-top:12px;"></div>
@@ -633,33 +588,33 @@
           </div>
           <div class="actions">
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button id="copyBtn" type="button">Copy JSON</button>
-              <button id="downloadBtn" type="button" class="btn-primary">Download JSON</button>
+              <button id="copyBtn" type="button" class="se-btn-text">Copy JSON</button>
+              <button id="downloadBtn" type="button" class="se-btn-primary">Download JSON</button>
               <span id="copyStatus" class="success hidden">Copied!</span>
             </div>
-            <button id="backToEditBtn" type="button">Back to Edit</button>
+            <button id="backToEditBtn" type="button" class="se-btn-secondary">Back to Edit</button>
           </div>
 
           <div class="upload-panel">
-            <button id="uploadToggleBtn" type="button" class="upload-toggle" aria-expanded="false" aria-controls="uploadBody">
+            <button id="uploadToggleBtn" type="button" class="upload-toggle se-btn-text" aria-expanded="false" aria-controls="uploadBody">
               <span>Upload directly to JWX Dashboard</span>
               <span id="uploadToggleChevron">▸</span>
             </button>
             <div id="uploadBody" class="upload-body hidden">
               <div class="grid-2">
                 <div class="field">
-                  <label for="uploadSiteId">Site ID</label>
-                  <input id="uploadSiteId" type="text" class="upload-input" placeholder="e.g. aBcDeFgH" autocomplete="off">
+                  <label for="uploadSiteId" class="se-label">Site ID</label>
+                  <input id="uploadSiteId" type="text" class="upload-input se-input" placeholder="e.g. aBcDeFgH" autocomplete="off">
                 </div>
                 <div class="field">
-                  <label for="uploadApiKey">Management API Key</label>
-                  <input id="uploadApiKey" type="password" class="upload-input" placeholder="Your Management API Key" autocomplete="off">
+                  <label for="uploadApiKey" class="se-label">Management API Key</label>
+                  <input id="uploadApiKey" type="password" class="upload-input se-input" placeholder="Your Management API Key" autocomplete="off">
                 </div>
               </div>
               <div class="inline-note">Your credentials are never stored and are only used for this request.</div>
               <div id="uploadValidationErr" class="error hidden" style="margin-top:8px;"></div>
               <div style="margin-top:10px;">
-                <button id="uploadBtn" type="button" class="btn-primary">Upload to Dashboard</button>
+                <button id="uploadBtn" type="button" class="se-btn-primary">Upload to Dashboard</button>
               </div>
               <div id="uploadStatus" class="upload-status hidden"></div>
             </div>
@@ -668,25 +623,26 @@
       </div>
 
       <div class="actions">
-        <button id="backBtn" type="button">Back</button>
-        <button id="nextBtn" type="button" class="btn-primary">Next</button>
+        <button id="backBtn" type="button" class="se-btn-secondary">Back</button>
+        <button id="nextBtn" type="button" class="se-btn-primary">Next</button>
       </div>
     </div>
-  </main>
+    </div>
+  </div>
 
   <template id="sectionTemplate">
     <article class="section-card">
       <div class="section-header">
         <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:180px;">
-          <button type="button" class="toggle-section">▾</button>
-          <input type="text" class="section-title-input" placeholder="Section title">
+          <button type="button" class="toggle-section se-btn-secondary">▾</button>
+          <input type="text" class="section-title-input se-input" placeholder="Section title">
           <span class="template-chip hidden">Template</span>
         </div>
         <div class="section-controls">
-          <button type="button" class="move-up">↑</button>
-          <button type="button" class="move-down">↓</button>
-          <button type="button" class="add-field">+ Field</button>
-          <button type="button" class="delete-section btn-danger">Delete</button>
+          <button type="button" class="move-up se-btn-secondary">↑</button>
+          <button type="button" class="move-down se-btn-secondary">↓</button>
+          <button type="button" class="add-field se-btn-secondary">+ Field</button>
+          <button type="button" class="delete-section se-btn-text">Delete</button>
         </div>
       </div>
       <div class="section-body"></div>
@@ -697,30 +653,30 @@
     <article class="field-card">
       <div class="field-head">
         <div class="field-title">
-          <button type="button" class="toggle-field">▾</button>
+          <button type="button" class="toggle-field se-btn-secondary">▾</button>
           <strong class="field-title-text">New Field</strong>
           <span class="template-chip hidden">Template</span>
         </div>
         <div class="field-controls">
-          <button type="button" class="field-move-up">↑</button>
-          <button type="button" class="field-move-down">↓</button>
-          <button type="button" class="delete-field btn-danger">Delete</button>
+          <button type="button" class="field-move-up se-btn-secondary">↑</button>
+          <button type="button" class="field-move-down se-btn-secondary">↓</button>
+          <button type="button" class="delete-field se-btn-text">Delete</button>
         </div>
       </div>
       <div class="field-body">
         <div class="grid-3">
           <div class="field">
             <label>Label *</label>
-            <input type="text" class="field-label" placeholder="e.g. Genre">
+            <input type="text" class="field-label se-input" placeholder="e.g. Genre">
           </div>
           <div class="field">
             <label>Param *</label>
-            <input type="text" class="field-param" placeholder="genre">
+            <input type="text" class="field-param se-input" placeholder="genre">
             <div class="inline-note">Auto-generated from label (editable).</div>
           </div>
           <div class="field">
             <label>Field Type *</label>
-            <select class="field-type">
+            <select class="field-type se-input">
               <option value="input">input</option>
               <option value="textarea">textarea</option>
               <option value="select">select</option>
@@ -735,7 +691,7 @@
           </div>
           <div class="field full">
             <label>Description</label>
-            <input type="text" class="field-description" placeholder="Helper text for editors">
+            <input type="text" class="field-description se-input" placeholder="Helper text for editors">
           </div>
         </div>
         <div class="inline-group">
@@ -1503,6 +1459,7 @@
           const label = document.createElement("label");
           label.textContent = labelText;
           const input = document.createElement("input");
+          input.className = "se-input";
           input.type = typeAttr || "text";
           input.value = d[key] !== undefined && d[key] !== null ? String(d[key]) : "";
           if (placeholder) input.placeholder = placeholder;
@@ -1533,6 +1490,7 @@
           const tLabel = document.createElement("label");
           tLabel.textContent = "Input Type";
           const sel = document.createElement("select");
+          sel.className = "se-input";
           ["text", "number", "email", "url", "tel"].forEach((t) => {
             const opt = document.createElement("option");
             opt.value = t;
@@ -1587,6 +1545,7 @@
             row.style.marginBottom = "6px";
 
             const labelIn = document.createElement("input");
+            labelIn.className = "se-input";
             labelIn.type = "text";
             labelIn.placeholder = "Label";
             labelIn.value = opt.label || "";
@@ -1600,6 +1559,7 @@
             });
 
             const valueIn = document.createElement("input");
+            valueIn.className = "se-input";
             valueIn.type = "text";
             valueIn.placeholder = "Value";
             valueIn.value = opt.value || "";
@@ -1612,7 +1572,7 @@
             const del = document.createElement("button");
             del.type = "button";
             del.textContent = "Delete";
-            del.className = "btn-danger";
+            del.className = "se-btn-text";
             del.addEventListener("click", () => {
               d.options.splice(idx, 1);
               renderSections();
@@ -1628,6 +1588,7 @@
           const addBtn = document.createElement("button");
           addBtn.type = "button";
           addBtn.textContent = "+ Add Option";
+          addBtn.className = "se-btn-secondary";
           addBtn.addEventListener("click", () => {
             d.options.push({ label: "New Option", value: "New Option", autoValue: true });
             renderSections();
@@ -1641,10 +1602,12 @@
           const bulkLabel = document.createElement("label");
           bulkLabel.textContent = "Bulk Import (one option per line)";
           const bulkText = document.createElement("textarea");
+          bulkText.className = "se-textarea";
           bulkText.placeholder = "Action\nDrama\nComedy";
           const bulkBtn = document.createElement("button");
           bulkBtn.type = "button";
           bulkBtn.textContent = "Import Options";
+          bulkBtn.className = "se-btn-secondary";
           bulkBtn.addEventListener("click", () => {
             const lines = bulkText.value
               .split("\n")
@@ -1669,6 +1632,7 @@
           const label = document.createElement("label");
           label.textContent = "Default";
           const sel = document.createElement("select");
+          sel.className = "se-input";
           [
             { value: "", text: "unset" },
             { value: "true", text: "true" },
@@ -2218,5 +2182,7 @@
       init();
     })();
   </script>
+  </div>
+  <script src="https://se-shared-assets-dfb3a6.gitlab.io/se-sidebar.js"></script>
 </body>
 </html>
