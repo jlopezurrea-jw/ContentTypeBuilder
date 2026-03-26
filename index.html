@@ -54,12 +54,12 @@
     .step-pill {
       appearance: none;
       width: 100%;
-      border: 1px solid #c8c8c8;
+      border: 0;
       background: #e0e0e0;
       border-radius: 999px;
       padding: 10px 12px;
       text-align: center;
-      color: #1b1f2e;
+      color: #8b92a5;
       font-size: 0.82rem;
       transition: all 0.25s ease;
     }
@@ -71,15 +71,15 @@
 
     .step-pill.active {
       color: #ffffff;
-      border-color: #0072ff;
+      border: 0;
       box-shadow: none;
       background: #0072ff;
     }
 
     .step-pill.done {
-      color: #ffffff;
-      border-color: #2a334d;
-      background: #1b1f2e;
+      color: #1b1f2e;
+      border: 1px solid #1b1f2e;
+      background: #ffffff;
     }
 
     .step-container {
@@ -115,14 +115,14 @@
     }
 
     .se-btn-secondary {
-      border-color: rgba(0, 114, 255, 0.45);
-      color: #d6e5ff;
-      background: #0f1a30;
+      border: 1px solid #e0e0e0;
+      color: #1b1f2e;
+      background: #ffffff;
     }
 
     .se-btn-text {
-      border-color: rgba(255, 255, 255, 0.18);
-      color: var(--text);
+      border: 1px solid #e0e0e0;
+      color: #1b1f2e;
       background: transparent;
     }
 
@@ -913,7 +913,7 @@
           pill.className = "step-pill";
           const unlocked = stepNum <= getStepUnlockLimit();
           pill.classList.toggle("locked", !unlocked);
-          if (stepNum < state.step) pill.classList.add("done");
+          if (stepNum !== state.step && stepNum <= state.maxVisitedStep) pill.classList.add("done");
           if (stepNum === state.step) pill.classList.add("active");
           pill.textContent = label;
           pill.disabled = !unlocked;
