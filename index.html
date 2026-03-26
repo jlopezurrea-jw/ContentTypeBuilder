@@ -907,7 +907,7 @@
           pill.type = "button";
           pill.className = "step-pill";
           const isSkippedTemplateStep = state.importedMode && stepNum === 3;
-          const unlocked = !isSkippedTemplateStep && stepNum <= getStepUnlockLimit();
+          const unlocked = stepNum <= getStepUnlockLimit();
           pill.classList.toggle("locked", !unlocked);
           if (!isSkippedTemplateStep && stepNum !== state.step && stepNum <= state.maxVisitedStep) pill.classList.add("done");
           if (stepNum === state.step) pill.classList.add("active");
@@ -1305,7 +1305,7 @@
         el.templatesContainer.innerHTML = "";
         if (el.templatesEmptyNote) {
           if (state.importedMode) {
-            el.templatesEmptyNote.textContent = "Templates are skipped for imported content types.";
+            el.templatesEmptyNote.textContent = "Templates are disabled when editing an existing content type. Go to Step 4 to edit fields directly.";
             el.templatesEmptyNote.classList.remove("hidden");
           } else if (available.length === 0) {
             el.templatesEmptyNote.textContent = "No templates available for this content type.";
@@ -1320,8 +1320,10 @@
           const card = document.createElement("button");
           card.type = "button";
           card.className = "template-card" + (selected ? " selected" : "");
+          card.disabled = !!state.importedMode;
           card.innerHTML = "<h3>" + tpl.title + "</h3><p>" + tpl.description + "</p>";
           card.addEventListener("click", () => {
+            if (state.importedMode) return;
             if (state.selectedTemplates.has(tpl.id)) {
               state.selectedTemplates.delete(tpl.id);
             } else {
@@ -1340,6 +1342,7 @@
       }
 
       function syncSectionsFromTemplates() {
+        if (state.importedMode) return;
         if (state.startFromScratch) {
           return;
         }
@@ -2135,7 +2138,7 @@
         el.backBtn.addEventListener("click", () => goToStep(state.step - 1));
         el.nextBtn.addEventListener("click", () => {
           if (!validateCurrentStep()) return;
-          if (state.step === 3) {
+          if (state.step === 3 && !state.importedMode) {
             syncSectionsFromTemplates();
           }
           goToStep(state.step + 1, true);
