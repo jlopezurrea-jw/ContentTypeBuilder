@@ -200,11 +200,13 @@
       background: #fdecea !important;
       color: #e53935 !important;
       border-radius: 6px;
-      min-width: 24px;
+      min-width: 28px;
       min-height: 24px;
-      padding: 4px 8px;
+      padding: 2px 8px;
       line-height: 1;
-      font-size: 0.95rem;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
     }
 
     .btn-icon-danger:hover {
@@ -835,7 +837,7 @@
           <button type="button" class="move-up se-btn-utility">↑</button>
           <button type="button" class="move-down se-btn-utility">↓</button>
           <button type="button" class="add-field se-btn-outline-blue">+ Field</button>
-          <button type="button" class="delete-section btn-icon-danger" aria-label="Delete section" title="Delete section">🗑</button>
+          <button type="button" class="delete-section btn-icon-danger" aria-label="Delete section" title="Delete section">&times;</button>
         </div>
       </div>
       <div class="section-body"></div>
@@ -853,7 +855,7 @@
         <div class="field-controls">
           <button type="button" class="field-move-up se-btn-utility">↑</button>
           <button type="button" class="field-move-down se-btn-utility">↓</button>
-          <button type="button" class="delete-field btn-icon-danger" aria-label="Delete field" title="Delete field">🗑</button>
+          <button type="button" class="delete-field btn-icon-danger" aria-label="Delete field" title="Delete field">&times;</button>
         </div>
       </div>
       <div class="field-body">
@@ -1761,7 +1763,7 @@
 
             const del = document.createElement("button");
             del.type = "button";
-            del.textContent = "🗑";
+            del.innerHTML = "&times;";
             del.className = "btn-icon-danger";
             del.setAttribute("aria-label", "Delete option");
             del.title = "Delete option";
