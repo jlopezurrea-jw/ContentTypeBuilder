@@ -148,6 +148,18 @@
       background: #f7f8fa;
     }
 
+    .se-btn-outline-blue {
+      border: 1px solid #0072ff;
+      color: #0072ff;
+      background: #ffffff;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .se-btn-outline-blue:hover {
+      background: #f0f6ff;
+    }
+
     .se-btn-utility {
       border: 0;
       background: transparent;
@@ -181,6 +193,23 @@
     .btn-danger:hover,
     .se-btn-text.btn-danger:hover {
       background: #fdecea;
+    }
+
+    .btn-icon-danger {
+      border: 0 !important;
+      background: transparent !important;
+      color: #9aa0ac !important;
+      border-radius: 6px;
+      min-width: 24px;
+      min-height: 24px;
+      padding: 2px 4px;
+      line-height: 1;
+      font-size: 0.95rem;
+    }
+
+    .btn-icon-danger:hover {
+      color: #e53935 !important;
+      background: transparent !important;
     }
 
     #backBtn:disabled {
@@ -375,7 +404,7 @@
       background: #ffffff;
       border-radius: 10px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-      margin-bottom: 12px;
+      margin-bottom: 20px;
       overflow: hidden;
     }
 
@@ -393,7 +422,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      padding: 10px 12px;
+      padding: 16px 20px;
       background: #ffffff;
       border-bottom: 1px solid #e0e0e0;
       flex-wrap: wrap;
@@ -422,7 +451,7 @@
     }
 
     .section-body {
-      padding: 12px;
+      padding: 20px;
     }
 
     .field-card {
@@ -431,7 +460,7 @@
       border-radius: 8px;
       margin-left: 12px;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       overflow: hidden;
     }
 
@@ -444,7 +473,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 9px 10px;
+      padding: 12px 14px;
       background: #ffffff;
       cursor: pointer;
     }
@@ -465,8 +494,28 @@
     }
 
     .field-body {
-      padding: 10px;
+      padding: 14px;
       border-top: 1px solid #eef1f4;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+      padding: 6px 0;
+      border-bottom: 1px solid #eef1f4;
+    }
+
+    .option-row:last-of-type {
+      border-bottom: 0;
+      margin-bottom: 8px;
+    }
+
+    .option-row .se-input {
+      padding: 8px 10px;
+      font-size: 0.86rem;
     }
 
     .field > label {
@@ -584,10 +633,12 @@
     .field-move-down {
       border: 0 !important;
       background: transparent !important;
-      color: #7b8190 !important;
-      padding: 6px 8px;
-      min-width: auto;
+      color: #9aa0ac !important;
+      padding: 4px 6px;
+      min-width: 22px;
+      min-height: 22px;
       border-radius: 6px;
+      font-size: 0.88rem;
     }
 
     .toggle-section:hover,
@@ -783,8 +834,8 @@
         <div class="section-controls">
           <button type="button" class="move-up se-btn-utility">↑</button>
           <button type="button" class="move-down se-btn-utility">↓</button>
-          <button type="button" class="add-field se-btn-primary">+ Field</button>
-          <button type="button" class="delete-section se-btn-text btn-danger">Delete</button>
+          <button type="button" class="add-field se-btn-outline-blue">+ Field</button>
+          <button type="button" class="delete-section btn-icon-danger" aria-label="Delete section" title="Delete section">🗑</button>
         </div>
       </div>
       <div class="section-body"></div>
@@ -802,7 +853,7 @@
         <div class="field-controls">
           <button type="button" class="field-move-up se-btn-utility">↑</button>
           <button type="button" class="field-move-down se-btn-utility">↓</button>
-          <button type="button" class="delete-field se-btn-text btn-danger">Delete</button>
+          <button type="button" class="delete-field btn-icon-danger" aria-label="Delete field" title="Delete field">🗑</button>
         </div>
       </div>
       <div class="field-body">
@@ -1681,10 +1732,7 @@
           if (!Array.isArray(d.options)) d.options = [];
           d.options.forEach((opt, idx) => {
             const row = document.createElement("div");
-            row.style.display = "grid";
-            row.style.gridTemplateColumns = "1fr 1fr auto";
-            row.style.gap = "8px";
-            row.style.marginBottom = "6px";
+            row.className = "option-row";
 
             const labelIn = document.createElement("input");
             labelIn.className = "se-input";
@@ -1713,8 +1761,10 @@
 
             const del = document.createElement("button");
             del.type = "button";
-            del.textContent = "Delete";
-            del.className = "se-btn-text btn-danger";
+            del.textContent = "🗑";
+            del.className = "btn-icon-danger";
+            del.setAttribute("aria-label", "Delete option");
+            del.title = "Delete option";
             del.addEventListener("click", () => {
               d.options.splice(idx, 1);
               renderSections();
