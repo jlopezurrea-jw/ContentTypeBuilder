@@ -1475,7 +1475,13 @@
       function normalizeDetails(type, details) {
         const d = cloneDeep(details || {});
         if (type === "input") {
+          if (d.input_type && !d.inputType) d.inputType = d.input_type;
+          delete d.input_type;
           if (!d.inputType) d.inputType = "text";
+          delete d.min_length;
+          delete d.max_length;
+          delete d.minLength;
+          delete d.maxLength;
         }
         if (type === "select" || type === "multiselect") {
           if (!Array.isArray(d.options)) d.options = [
@@ -1767,9 +1773,8 @@
           tWrap.appendChild(sel);
           grid.appendChild(tWrap);
           grid.appendChild(makeInput("Placeholder", "placeholder", "text"));
+          grid.appendChild(makeInput("Default (optional)", "default", "text"));
           grid.appendChild(makeInput("Pattern", "pattern", "text"));
-          grid.appendChild(makeInput("Min Length", "min_length", "number"));
-          grid.appendChild(makeInput("Max Length", "max_length", "number"));
           root.appendChild(grid);
           return;
         }
@@ -2097,6 +2102,12 @@
         const details = { field_type: field.type };
         const d = cloneDeep(field.details || {});
         if (field.type === "input") {
+          if (d.input_type && !d.inputType) d.inputType = d.input_type;
+          delete d.input_type;
+          delete d.min_length;
+          delete d.max_length;
+          delete d.minLength;
+          delete d.maxLength;
           if (!["number", "email", "url", "tel"].includes(d.inputType)) {
             delete d.inputType;
           }
