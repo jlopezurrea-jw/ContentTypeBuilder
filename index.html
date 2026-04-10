@@ -1187,6 +1187,10 @@
       }
 
       function applyHostingTypeDerivedState() {
+        if (state.schema.hosting_type !== "ott_data") {
+          state.schema.is_series = false;
+          return;
+        }
         if (state.contentType === "series") {
           state.schema.is_series = true;
         }
@@ -1243,9 +1247,11 @@
           : "";
         el.hostingReadonly.classList.toggle("hidden", !el.hostingReadonly.textContent);
 
-        const lockSeries = state.contentType === "series";
+        const isOttData = state.schema.hosting_type === "ott_data";
+        const lockSeries = !isOttData || state.contentType === "series";
         el.isSeries.checked = !!state.schema.is_series;
         el.isSeries.disabled = lockSeries;
+        el.isSeriesWrap.classList.toggle("hidden", !isOttData);
         el.isSeriesWrap.classList.toggle("readonly", lockSeries);
       }
 
