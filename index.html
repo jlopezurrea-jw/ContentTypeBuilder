@@ -529,9 +529,9 @@
               <div id="hostingReadonly" class="inline-note hidden"></div>
             </div>
             <div class="field">
-              <div id="isSeriesWrap" class="switchline hidden">
-                <span>Is Series (read-only)</span>
-                <span id="isSeriesValue">false</span>
+              <div id="isSeriesWrap" class="switchline">
+                <span>Is Series</span>
+                <input id="isSeries" type="checkbox">
               </div>
               <div class="switchline">
                 <span>Is Active</span>
@@ -772,7 +772,7 @@
         hostingType: document.getElementById("hostingType"),
         hostingReadonly: document.getElementById("hostingReadonly"),
         isSeriesWrap: document.getElementById("isSeriesWrap"),
-        isSeriesValue: document.getElementById("isSeriesValue"),
+        isSeries: document.getElementById("isSeries"),
         isActive: document.getElementById("isActive"),
         templatesContainer: document.getElementById("templatesContainer"),
         startScratch: document.getElementById("startScratch"),
@@ -895,8 +895,8 @@
       }
 
       function applyHostingTypeDerivedState() {
-        if (state.schema.hosting_type !== "ott_data") {
-          state.schema.is_series = false;
+        if (state.contentType === "series") {
+          state.schema.is_series = true;
         }
       }
 
@@ -951,9 +951,10 @@
           : "";
         el.hostingReadonly.classList.toggle("hidden", !el.hostingReadonly.textContent);
 
-        const showSeries = state.schema.hosting_type === "ott_data";
-        el.isSeriesWrap.classList.toggle("hidden", !showSeries);
-        el.isSeriesValue.textContent = showSeries && state.schema.is_series ? "true" : "false";
+        const lockSeries = state.contentType === "series";
+        el.isSeries.checked = !!state.schema.is_series;
+        el.isSeries.disabled = lockSeries;
+        el.isSeriesWrap.classList.toggle("readonly", lockSeries);
       }
 
       function templatesCatalog() {
@@ -1907,6 +1908,15 @@
           state.schema.hosting_type = el.hostingType.value;
           applyHostingTypeDerivedState();
           syncIdentityUI();
+          refreshReview();
+        });
+        el.isSeries.addEventListener("change", () => {
+          if (state.contentType === "series") {
+            state.schema.is_series = true;
+            el.isSeries.checked = true;
+          } else {
+            state.schema.is_series = el.isSeries.checked;
+          }
           refreshReview();
         });
         el.isActive.addEventListener("change", () => {
