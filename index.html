@@ -899,6 +899,10 @@
         return contentTypeKey === "custom";
       }
 
+      function shouldSkipTemplatesForImport() {
+        return state.importedMode && state.schema.hosting_type !== "live_bcl";
+      }
+
       function buildProgress() {
         el.progress.innerHTML = "";
         STEP_LABELS.forEach((label, idx) => {
@@ -906,7 +910,7 @@
           const pill = document.createElement("button");
           pill.type = "button";
           pill.className = "step-pill";
-          const isSkippedTemplateStep = state.importedMode && stepNum === 3;
+          const isSkippedTemplateStep = shouldSkipTemplatesForImport() && stepNum === 3;
           const unlocked = stepNum <= getStepUnlockLimit();
           pill.classList.toggle("locked", !unlocked);
           if (!isSkippedTemplateStep && stepNum !== state.step && stepNum <= state.maxVisitedStep) pill.classList.add("done");
@@ -1302,9 +1306,10 @@
           if (state.contentType === "episode" && tpl.id === "general") return false;
           return true;
         });
+        const templatesLocked = shouldSkipTemplatesForImport();
         el.templatesContainer.innerHTML = "";
         if (el.templatesEmptyNote) {
-          if (state.importedMode) {
+          if (templatesLocked) {
             el.templatesEmptyNote.textContent = "Templates are disabled when editing an existing content type. Go to Step 4 to edit fields directly.";
             el.templatesEmptyNote.classList.remove("hidden");
           } else if (available.length === 0) {
@@ -1320,10 +1325,10 @@
           const card = document.createElement("button");
           card.type = "button";
           card.className = "template-card" + (selected ? " selected" : "");
-          card.disabled = !!state.importedMode;
+          card.disabled = templatesLocked;
           card.innerHTML = "<h3>" + tpl.title + "</h3><p>" + tpl.description + "</p>";
           card.addEventListener("click", () => {
-            if (state.importedMode) return;
+            if (templatesLocked) return;
             if (state.selectedTemplates.has(tpl.id)) {
               state.selectedTemplates.delete(tpl.id);
             } else {
@@ -1342,7 +1347,7 @@
       }
 
       function syncSectionsFromTemplates() {
-        if (state.importedMode) return;
+        if (shouldSkipTemplatesForImport()) return;
         if (state.startFromScratch) {
           return;
         }
@@ -2138,7 +2143,7 @@
         el.backBtn.addEventListener("click", () => goToStep(state.step - 1));
         el.nextBtn.addEventListener("click", () => {
           if (!validateCurrentStep()) return;
-          if (state.step === 3 && !state.importedMode) {
+          if (state.step === 3 && (!state.importedMode || state.schema.hosting_type === "live_bcl")) {
             syncSectionsFromTemplates();
           }
           goToStep(state.step + 1, true);
