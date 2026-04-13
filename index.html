@@ -1017,10 +1017,10 @@
           {
             id: "liveStatus",
             title: "Live Status",
-            description: "Auto-populated live timing fields",
+            description: "Auto-populated VCH status fields",
             sections: [
               {
-                title: "Live Status",
+                title: "VCH Status",
                 fields: buildLiveStatusFields()
               }
             ]
@@ -1128,16 +1128,58 @@
       }
 
       function buildLiveStatusFields() {
-        const fields = [
-          createField({ label: "Status", param: "VCH.EventState", description: "Auto status from live service", type: "input", read_only: true, details: {}, fromTemplate: true }),
-          createField({ label: "Start Time", param: "VCH.ScheduledStart", description: "Scheduled start timestamp", type: "date_time", read_only: true, details: {}, fromTemplate: true })
-        ];
         if (state.contentType === "live_event") {
-          fields.push(
-            createField({ label: "End Time", param: "VCH.ScheduledEnd", description: "Scheduled end timestamp", type: "date_time", read_only: true, details: {}, fromTemplate: true })
-          );
+          return [
+            createField({
+              label: "Event State",
+              param: "VCH.EventState",
+              description: "Current state of the live event (auto-populated)",
+              type: "input",
+              read_only: true,
+              details: {},
+              fromTemplate: true
+            }),
+            createField({
+              label: "On Demand",
+              param: "VCH.OnDemand",
+              description: "Whether the event is available on demand (auto-populated)",
+              type: "input",
+              read_only: true,
+              details: {},
+              fromTemplate: true
+            }),
+            createField({
+              label: "Scheduled Start",
+              param: "VCH.ScheduledStart",
+              description: "Scheduled start time of the event (auto-populated)",
+              type: "date_time",
+              read_only: true,
+              details: {},
+              fromTemplate: true
+            }),
+            createField({
+              label: "Scheduled End",
+              param: "VCH.ScheduledEnd",
+              description: "Scheduled end time of the event (auto-populated)",
+              type: "date_time",
+              read_only: true,
+              details: {},
+              fromTemplate: true
+            })
+          ];
         }
-        return fields;
+
+        return [
+          createField({
+            label: "Event State",
+            param: "VCH.EventState",
+            description: "Current state of the live channel (auto-populated)",
+            type: "input",
+            read_only: true,
+            details: {},
+            fromTemplate: true
+          })
+        ];
       }
 
       function fieldFromJson(jsonField, fromTemplate) {
