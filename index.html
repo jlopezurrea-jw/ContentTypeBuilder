@@ -967,7 +967,7 @@
       const TEMPLATE_FILTERS = {
         general: ["movie", "series", "custom", "episode"],
         access: ["movie", "series", "live_channel", "live_event", "custom"],
-        liveStatus: ["live_channel", "live_event"],
+        liveStatus: ["live_channel", "live_event", "custom"],
         epg: ["live_channel", "custom"],
         liveParams: ["live_channel", "live_event", "custom"],
         staticPage: ["static_page", "custom"],
@@ -1261,19 +1261,14 @@
 
       function templatesCatalog() {
         const isSeriesContent = state.contentType === "series";
-        const isLiveEventContent = state.contentType === "live_event";
-        const isLiveChannelContent = state.contentType === "live_channel";
         const generalTitle = isSeriesContent ? "General (Series Metadata)" : "General (Movie/Series)";
         const generalDescription = isSeriesContent
           ? "Genre, Rating, Trailer for series-level metadata"
           : "Genre, Rating, Trailer";
         const generalSectionTitle = isSeriesContent ? "Series Metadata" : "General";
-        const liveStatusTitle = isLiveEventContent
-          ? "VCH Status (Live Event)"
-          : (isLiveChannelContent ? "VCH Status (Live Channel)" : "VCH Status");
-        const liveStatusDescription = isLiveEventContent
-          ? "Auto-populated VCH status fields for live events"
-          : (isLiveChannelContent ? "Auto-populated VCH status fields for live channels" : "Auto-populated VCH status fields");
+        const showLiveStatusTemplate = state.schema.hosting_type === "live_bcl";
+        const liveStatusTitle = "VCH Status";
+        const liveStatusDescription = "Auto-populated VCH status fields";
         return [
           {
             id: "general",
@@ -1327,7 +1322,8 @@
                 title: "Status",
                 fields: buildLiveStatusFields()
               }
-            ]
+            ],
+            enabledForHosting: showLiveStatusTemplate
           },
           {
             id: "epg",
@@ -1432,60 +1428,44 @@
       }
 
       function buildLiveStatusFields() {
-        if (state.contentType === "live_event") {
-          return [
-            createField({
-              label: "Event State",
-              param: "VCH.EventState",
-              description: "Current state of the live event (auto-populated)",
-              type: "input",
-              read_only: true,
-              details: {},
-              fromTemplate: true
-            }),
-            createField({
-              label: "On Demand",
-              param: "VCH.OnDemand",
-              description: "Whether the event is available on demand (auto-populated)",
-              type: "input",
-              read_only: true,
-              details: {},
-              fromTemplate: true
-            }),
-            createField({
-              label: "Scheduled Start",
-              param: "VCH.ScheduledStart",
-              description: "Scheduled start time of the event (auto-populated)",
-              type: "date_time",
-              read_only: true,
-              details: {},
-              fromTemplate: true
-            }),
-            createField({
-              label: "Scheduled End",
-              param: "VCH.ScheduledEnd",
-              description: "Scheduled end time of the event (auto-populated)",
-              type: "date_time",
-              read_only: true,
-              details: {},
-              fromTemplate: true
-            })
-          ];
-        }
-        if (state.contentType === "live_channel") {
-          return [
-            createField({
-              label: "Event State",
-              param: "VCH.EventState",
-              description: "Current state of the live channel (auto-populated)",
-              type: "input",
-              read_only: true,
-              details: {},
-              fromTemplate: true
-            })
-          ];
-        }
-        return [];
+        return [
+          createField({
+            label: "Event State",
+            param: "VCH.EventState",
+            description: "Current state of the live event (auto-populated)",
+            type: "input",
+            read_only: true,
+            details: {},
+            fromTemplate: true
+          }),
+          createField({
+            label: "On Demand",
+            param: "VCH.OnDemand",
+            description: "Whether the event is available on demand (auto-populated)",
+            type: "input",
+            read_only: true,
+            details: {},
+            fromTemplate: true
+          }),
+          createField({
+            label: "Scheduled Start",
+            param: "VCH.ScheduledStart",
+            description: "Scheduled start time of the event (auto-populated)",
+            type: "date_time",
+            read_only: true,
+            details: {},
+            fromTemplate: true
+          }),
+          createField({
+            label: "Scheduled End",
+            param: "VCH.ScheduledEnd",
+            description: "Scheduled end time of the event (auto-populated)",
+            type: "date_time",
+            read_only: true,
+            details: {},
+            fromTemplate: true
+          })
+        ];
       }
 
       function fieldFromJson(jsonField, fromTemplate) {
@@ -1560,6 +1540,7 @@
         const available = catalog.filter((tpl) => {
           if (!TEMPLATE_FILTERS[tpl.id].includes(state.contentType)) return false;
           if (state.contentType === "episode" && tpl.id === "general") return false;
+          if (tpl.id === "liveStatus" && tpl.enabledForHosting === false) return false;
           return true;
         });
         const templatesLocked = shouldSkipTemplatesForImport();
